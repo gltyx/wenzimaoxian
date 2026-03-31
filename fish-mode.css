@@ -1,0 +1,837 @@
+/* 摸鱼模式按钮 */
+.btn-fish-mode {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    z-index: 1000;
+}
+
+.btn-fish-mode:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #684298 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-fish-mode:active {
+    transform: translateY(0);
+}
+
+/* 摸鱼模式 - 简化样式，只修改颜色显示 */
+body.fish-mode {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+    color: #ffffff !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* 顶部状态栏 */
+body.fish-mode .top-bar {
+    background: linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    border-bottom: 1px solid #333 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+}
+
+body.fish-mode .char-name {
+    color: #999 !important;
+}
+
+body.fish-mode .char-level {
+    background: rgba(160, 160, 160, 0.2) !important;
+    color: #888 !important;
+}
+
+body.fish-mode .char-exp {
+    background: rgba(120, 120, 120, 0.2) !important;
+    color: #777 !important;
+}
+
+body.fish-mode .resource-icon {
+    filter: grayscale(100%) !important;
+}
+
+body.fish-mode .resource-value {
+    color: #ccc !important;
+}
+
+/* 主内容区域 */
+body.fish-mode .main-content {
+    background: rgba(42, 42, 42, 0.1) !important;
+    margin-top: 50px !important;
+    margin-bottom: 55px !important;
+    padding: 10px !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 105px) !important;
+}
+
+/* 区域选择器 */
+body.fish-mode .area-selector {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .area-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .area-level {
+    color: #aaa !important;
+}
+
+/* 按钮 */
+body.fish-mode .btn-select-area,
+body.fish-mode .btn-elite-dungeon,
+body.fish-mode .btn-hell-dungeon {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    border-color: #444 !important;
+    color: #eee !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .btn-select-area:hover,
+body.fish-mode .btn-elite-dungeon:hover,
+body.fish-mode .btn-hell-dungeon:hover {
+    background: linear-gradient(135deg, #444 0%, #222 100%) !important;
+    border-color: #555 !important;
+}
+
+/* 战斗状态 */
+body.fish-mode .battle-status {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .enemy-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .enemy-stats {
+    color: #aaa !important;
+}
+
+body.fish-mode .enemy-hp-bar {
+    background: #333 !important;
+}
+
+body.fish-mode .hp-bar-fill {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+}
+
+body.fish-mode .hp-bar-fill.player {
+    background: linear-gradient(135deg, #666 0%, #444 100%) !important;
+}
+
+body.fish-mode .enemy-hp-text,
+body.fish-mode .player-hp-text {
+    color: #ccc !important;
+}
+
+body.fish-mode .enemy-crit-stats {
+    color: #aaa !important;
+}
+
+/* 战斗日志 */
+body.fish-mode .battle-log {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .log-entry {
+    color: #ccc !important;
+}
+
+body.fish-mode .log-entry.system {
+    color: #888 !important;
+}
+
+body.fish-mode .log-entry.damage {
+    color: #999 !important;
+}
+
+body.fish-mode .log-entry.loot {
+    color: #888 !important;
+}
+
+body.fish-mode .log-entry.levelup {
+    color: #777 !important;
+}
+
+body.fish-mode .log-entry.skill {
+    color: #666 !important;
+}
+
+body.fish-mode .log-entry.boss {
+    color: #aaa !important;
+}
+
+/* 底部导航栏 */
+body.fish-mode .bottom-nav {
+    background: linear-gradient(0deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    border-top: 1px solid #333 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+}
+
+body.fish-mode .nav-btn {
+    color: #999 !important;
+    background: transparent !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .nav-btn.active {
+    color: #ccc !important;
+    background: rgba(100, 100, 100, 0.1) !important;
+}
+
+body.fish-mode .nav-icon {
+    filter: grayscale(100%) !important;
+}
+
+body.fish-mode .nav-text {
+    color: #888 !important;
+}
+
+/* 人物页面 */
+body.fish-mode .character-panel {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .char-tabs button {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .char-tabs button.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .stat-row {
+    border-color: #333 !important;
+}
+
+body.fish-mode .stat-name {
+    color: #999 !important;
+}
+
+body.fish-mode .stat-value {
+    color: #ccc !important;
+}
+
+body.fish-mode .equipment-slot {
+    background: #333 !important;
+    border-color: #444 !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .equipment-slot.empty {
+    border-color: #555 !important;
+}
+
+body.fish-mode .equip-info {
+    color: #888 !important;
+}
+
+/* 背包页面 */
+body.fish-mode .inventory-header {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .capacity {
+    color: #ccc !important;
+}
+
+body.fish-mode .filter-tabs button {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .filter-tabs button.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .inventory-grid {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .inventory-item {
+    background: #333 !important;
+    border-color: #444 !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .item-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .item-stats {
+    color: #888 !important;
+}
+
+body.fish-mode .auto-dismantle-bar {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .auto-dismantle-title {
+    color: #ccc !important;
+}
+
+body.fish-mode .dismantle-quality-item {
+    background: #333 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .dismantle-quality-item input:checked + label {
+    background: #444 !important;
+    color: #ccc !important;
+}
+
+/* 技能页面 */
+body.fish-mode .skill-tabs button {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .skill-tabs button.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .equipped-skills h3,
+body.fish-mode .skill-pool h3 {
+    color: #ccc !important;
+}
+
+body.fish-mode .skill-slots {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .skill-slot {
+    background: #333 !important;
+    border-color: #444 !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .skill-icon {
+    color: #888 !important;
+}
+
+body.fish-mode .skill-name {
+    color: #999 !important;
+}
+
+body.fish-mode .skill-list {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .skill-item {
+    background: #333 !important;
+    border-color: #444 !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .skill-item .skill-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .skill-item .skill-level {
+    color: #888 !important;
+}
+
+body.fish-mode .skill-item .skill-description {
+    color: #999 !important;
+}
+
+/* 商店页面 */
+body.fish-mode .shop-tabs button {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .shop-tabs button.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .shop-item {
+    background: #333 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .shop-item-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .shop-item-price {
+    color: #888 !important;
+}
+
+body.fish-mode .shop-item-desc {
+    color: #999 !important;
+}
+
+body.fish-mode .btn-buy {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    border-color: #444 !important;
+    color: #eee !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .btn-buy:hover {
+    background: linear-gradient(135deg, #444 0%, #222 100%) !important;
+    border-color: #555 !important;
+}
+
+/* 更多页面 */
+body.fish-mode .more-menu {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .menu-item {
+    background: #333 !important;
+    border-color: #444 !important;
+    color: #ccc !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .menu-item:hover {
+    background: #444 !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .menu-icon {
+    filter: grayscale(100%) !important;
+}
+
+body.fish-mode .menu-text {
+    color: #ccc !important;
+}
+
+/* 模态框 */
+body.fish-mode .modal {
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+body.fish-mode .modal-content {
+    background: #2a2a2a !important;
+    border-color: #333 !important;
+}
+
+body.fish-mode .modal-header {
+    border-bottom-color: #333 !important;
+}
+
+body.fish-mode .modal-header h2 {
+    color: #ccc !important;
+}
+
+body.fish-mode .modal-close {
+    color: #888 !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .modal-close:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.fish-mode .modal-body {
+    color: #ccc !important;
+}
+
+body.fish-mode .btn-action {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    border-color: #444 !important;
+    color: #eee !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .btn-action:hover {
+    background: linear-gradient(135deg, #444 0%, #222 100%) !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .btn-dismantle {
+    background: linear-gradient(135deg, #666 0%, #444 100%) !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .btn-dismantle:hover {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    border-color: #666 !important;
+}
+
+/* 兑换码界面 */
+body.fish-mode .redeem-id-box {
+    background: #333 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .redeem-id-label {
+    color: #999 !important;
+}
+
+body.fish-mode .redeem-id-value {
+    color: #ccc !important;
+}
+
+body.fish-mode .redeem-id-tip {
+    color: #888 !important;
+}
+
+body.fish-mode .redeem-input-box {
+    margin-bottom: 15px !important;
+}
+
+body.fish-mode .redeem-input {
+    background: #333 !important;
+    border-color: #444 !important;
+    color: #ccc !important;
+}
+
+body.fish-mode .btn-redeem-submit {
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    border-color: #444 !important;
+    color: #eee !important;
+    cursor: pointer !important;
+}
+
+body.fish-mode .btn-redeem-submit:hover {
+    background: linear-gradient(135deg, #444 0%, #222 100%) !important;
+    border-color: #555 !important;
+}
+
+body.fish-mode .vip-privilege-box {
+    background: #333 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .vip-privilege-title {
+    color: #ccc !important;
+}
+
+body.fish-mode .vip-priv-grid {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-bottom: 5px !important;
+}
+
+body.fish-mode .vip-priv-card {
+    background: #333 !important;
+    border-color: #444 !important;
+    color: #ccc !important;
+}
+
+body.fish-mode .vip-priv-name {
+    color: #ccc !important;
+}
+
+body.fish-mode .vip-priv-threshold {
+    color: #888 !important;
+}
+
+body.fish-mode .vip-priv-item {
+    color: #999 !important;
+}
+
+body.fish-mode .vip-progress-box {
+    background: #333 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .vip-progress-title {
+    color: #ccc !important;
+}
+
+body.fish-mode .vip-bar-row {
+    border-color: #444 !important;
+}
+
+body.fish-mode .vip-bar-label {
+    color: #999 !important;
+}
+
+body.fish-mode .vip-bar-wrap {
+    background: #444 !important;
+}
+
+body.fish-mode .vip-bar-fill {
+    background: #555 !important;
+}
+
+body.fish-mode .vip-bar-val {
+    color: #888 !important;
+}
+
+/* 确保所有按钮都能正常点击 */
+body.fish-mode button {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+body.fish-mode .btn-fish-mode {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+body.fish-mode .skill-slot {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+body.fish-mode .inventory-item {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+body.fish-mode .equipment-slot {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* 背包页面装备品质标签 */
+body.fish-mode .quality-tag {
+    background: #333 !important;
+    color: #999 !important;
+}
+
+/* 装备成功率显示 */
+body.fish-mode .success-rate {
+    color: #888 !important;
+}
+
+/* 装备星星等级 */
+body.fish-mode .star-rating {
+    color: #777 !important;
+}
+
+/* 聊天按钮图标 */
+body.fish-mode .chat-btn {
+    filter: grayscale(100%) !important;
+}
+
+/* 敌人属性显示 */
+body.fish-mode .enemy-stats {
+    color: #888 !important;
+}
+
+/* 装备属性值 */
+body.fish-mode .item-stats {
+    color: #777 !important;
+}
+
+/* 技能图标 */
+body.fish-mode .skill-icon {
+    filter: grayscale(100%) !important;
+}
+
+/* 背包标签页 */
+body.fish-mode .filter-tabs button {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .filter-tabs button.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+/* 背包页面品质标签 */
+body.fish-mode .quality-filter-btn {
+    background: #333 !important;
+    color: #999 !important;
+    border-color: #444 !important;
+}
+
+body.fish-mode .quality-filter-btn.active {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+/* 战斗日志特效文字 */
+body.fish-mode .log-entry.loot {
+    color: #888 !important;
+}
+
+body.fish-mode .log-entry.boss {
+    color: #aaa !important;
+}
+
+/* 奇遇BOSS特效 */
+body.fish-mode .boss-appear {
+    color: #999 !important;
+    background: rgba(42, 42, 42, 0.8) !important;
+}
+
+/* 奇遇BOSS动画效果 - 黑白处理 */
+@keyframes eventBossFlashFish {
+    0% {
+        opacity: 0;
+        background: rgba(150, 150, 150, 0);
+    }
+    20% {
+        opacity: 1;
+        background: radial-gradient(circle at center, rgba(150, 150, 150, 0.8), rgba(120, 120, 120, 0.4));
+    }
+    40% {
+        opacity: 1;
+        background: radial-gradient(circle at center, rgba(150, 150, 150, 0.6), rgba(120, 120, 120, 0.3));
+    }
+    60% {
+        opacity: 1;
+        background: radial-gradient(circle at center, rgba(150, 150, 150, 0.4), rgba(120, 120, 120, 0.2));
+    }
+    80% {
+        opacity: 0.5;
+        background: radial-gradient(circle at center, rgba(150, 150, 150, 0.2), rgba(120, 120, 120, 0.1));
+    }
+    100% {
+        opacity: 0;
+        background: rgba(150, 150, 150, 0);
+    }
+}
+
+body.fish-mode .event-boss-flash {
+    animation: eventBossFlashFish 3s ease-out forwards !important;
+    background: transparent !important;
+}
+
+/* 确保所有带颜色的元素都被黑白处理 */
+body.fish-mode * {
+    filter: grayscale(100%) !important;
+    color: #ccc !important;
+    border-color: #333 !important;
+}
+
+/* 特殊元素的颜色处理 */
+body.fish-mode .btn-fish-mode {
+    filter: none !important;
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+    color: #eee !important;
+}
+
+body.fish-mode .hp-bar-fill {
+    filter: none !important;
+    background: linear-gradient(135deg, #555 0%, #333 100%) !important;
+}
+
+body.fish-mode .hp-bar-fill.player {
+    filter: none !important;
+    background: linear-gradient(135deg, #666 0%, #444 100%) !important;
+}
+
+/* 确保布局不变 */
+body.fish-mode {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+body.fish-mode .main-content {
+    margin-top: 50px !important;
+    margin-bottom: 55px !important;
+    padding: 6px 8px !important;
+    height: calc(100vh - 105px) !important;
+    overflow-y: auto !important;
+}
+
+body.fish-mode .top-bar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+}
+
+body.fish-mode .bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+}
+
+/* 装备品质颜色 */
+body.fish-mode .quality-common {
+    color: #999 !important;
+}
+
+body.fish-mode .quality-uncommon {
+    color: #888 !important;
+}
+
+body.fish-mode .quality-rare {
+    color: #777 !important;
+}
+
+body.fish-mode .quality-epic {
+    color: #666 !important;
+}
+
+body.fish-mode .quality-legendary {
+    color: #555 !important;
+}
+
+body.fish-mode .quality-mythic {
+    color: #444 !important;
+}
+
+body.fish-mode .quality-divine {
+    color: #333 !important;
+}
+
+body.fish-mode .quality-eternal {
+    color: #222 !important;
+}
+
+body.fish-mode .quality-abyss {
+    color: #111 !important;
+}
+
+body.fish-mode .quality-chaos {
+    color: #000 !important;
+}
+
+body.fish-mode .quality-void {
+    color: #999 !important;
+}
+
+body.fish-mode .quality-destruction {
+    color: #888 !important;
+}
+
+body.fish-mode .quality-apocalypse {
+    color: #777 !important;
+}

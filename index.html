@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>文字冒险 - 放置RPG</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="fish-mode.css">
+    <style>
+        /* 战斗界面紧凑布局 */
+        .area-selector {
+            padding: 8px 10px !important;
+            margin-bottom: 8px !important;
+        }
+        .area-title {
+            margin-bottom: 4px !important;
+            font-size: 11px !important;
+        }
+        .area-info {
+            margin-bottom: 6px !important;
+        }
+        .area-name {
+            font-size: 15px !important;
+        }
+        .area-level {
+            font-size: 12px !important;
+        }
+        .area-buttons {
+            gap: 6px !important;
+            margin-top: 6px !important;
+        }
+        .btn-select-area,
+        .btn-elite-dungeon,
+        .btn-hell-dungeon {
+            padding: 6px 8px !important;
+            font-size: 12px !important;
+        }
+        .battle-log {
+            padding: 8px 10px !important;
+            margin-bottom: 8px !important;
+            min-height: 120px !important;
+            flex: 0.8 !important;
+        }
+        .log-entry {
+            padding: 3px 0 !important;
+            font-size: 12px !important;
+            line-height: 1.4 !important;
+        }
+        .battle-status {
+            padding: 10px !important;
+            min-height: auto !important;
+        }
+        .enemy-info {
+            margin-bottom: 10px !important;
+        }
+        .enemy-name {
+            font-size: 16px !important;
+            margin-bottom: 5px !important;
+        }
+        .enemy-stats {
+            gap: 10px !important;
+            margin-bottom: 5px !important;
+        }
+        .enemy-crit-stats {
+            margin-top: 3px !important;
+        }
+        .enemy-hp-bar,
+        .player-hp-bar {
+            height: 16px !important;
+            margin-bottom: 3px !important;
+        }
+        .enemy-hp-text,
+        .player-hp-text {
+            font-size: 11px !important;
+        }
+        #battlePage.active {
+            height: calc(100vh - 120px) !important;
+        }
+        .main-content {
+            padding: 6px 8px !important;
+        }
+
+        /* 聊天界面优化 */
+        #chatModal .modal-content {
+            max-height: 95vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        #chatModal .modal-body {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 15px !important;
+            overflow: hidden !important;
+        }
+
+        #chatModal .chat-messages {
+            flex: 1 !important;
+            max-height: none !important;
+            margin-bottom: 12px !important;
+            padding: 10px !important;
+        }
+
+        #chatModal .chat-preview-buttons {
+            margin-bottom: 10px !important;
+            gap: 6px !important;
+        }
+
+        #chatModal .chat-preview-btn {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+        }
+
+        #chatModal .chat-input {
+            flex-shrink: 0 !important;
+        }
+
+        #chatModal .chat-input input {
+            padding: 10px 14px !important;
+        }
+
+        #chatModal .chat-input button {
+            padding: 10px 16px !important;
+        }
+
+        .item-detail-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .item-detail-icon {
+            font-size: 48px;
+            margin-right: 15px;
+        }
+        .item-detail-name-group {
+            flex: 1;
+        }
+        .item-detail-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .item-detail-quality {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .item-detail-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .item-detail-meta-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .meta-label {
+            font-size: 12px;
+            color: #aaa;
+            display: block;
+        }
+        .meta-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .item-detail-stats-section {
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 10px;
+            padding-left: 5px;
+            border-left: 3px solid #3498db;
+        }
+        .item-detail-stats, .item-detail-affixes {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .stat-row, .affix-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-row:last-child, .affix-row:last-child {
+            border-bottom: none;
+        }
+        .stat-name, .affix-name {
+            color: #aaa;
+        }
+        .stat-value, .affix-value {
+            font-weight: bold;
+        }
+        .gem-detail-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .gem-detail-icon {
+            font-size: 48px;
+            margin-right: 15px;
+        }
+        .gem-detail-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .gem-detail-quality {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+        .gem-detail-stats {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+    <!-- 立即检查本地存档，有则隐藏登录界面 -->
+    <script>
+        (function() {
+            const savedPlayerId = localStorage.getItem('playerId');
+            const savedPassword = localStorage.getItem('playerPassword');
+            
+            if (savedPlayerId && savedPassword) {
+                console.log('检测到本地存档，立即隐藏登录界面');
+                // 等到 DOM 加载完成后隐藏
+                document.addEventListener('DOMContentLoaded', function() {
+                    const loginModal = document.getElementById('loginModal');
+                    if (loginModal) {
+                        loginModal.style.display = 'none';
+                    }
+                });
+            }
+        })();
+    </script>
+
+    <!-- 兼容层 -->
+    <script src="cloudbaseUtils.js"></script>
+    
+    <!-- 腾讯云 CloudBase SDK -->
+    <script>
+        // 动态加载 CloudBase SDK，添加时间戳防止缓存
+        function loadCloudBaseSDK() {
+            console.log('开始加载 CloudBase SDK...');
+            const sdkScript = document.createElement('script');
+            // 使用本地文件加载 SDK，绕过浏览器跟踪预防
+            sdkScript.src = 'cloudbase-sdk/cloudbase.full.js?t=' + Date.now();
+            sdkScript.onload = function() {
+                console.log('CloudBase SDK 加载成功');
+                window.cloudbaseSDKLoaded = true;
+                loadCloudBaseConfig();
+            };
+            sdkScript.onerror = function() {
+                console.error('CloudBase SDK 本地文件加载失败');
+                console.error('尝试使用相对路径加载...');
+                // 尝试使用相对路径加载
+                const relativeSdkScript = document.createElement('script');
+                relativeSdkScript.src = './cloudbase-sdk/cloudbase.full.js?t=' + Date.now();
+                relativeSdkScript.onload = function() {
+                    console.log('CloudBase SDK 相对路径加载成功');
+                    window.cloudbaseSDKLoaded = true;
+                    loadCloudBaseConfig();
+                };
+                relativeSdkScript.onerror = function() {
+                    console.error('CloudBase SDK 所有加载方式都失败');
+                    console.error('云功能将无法使用，请检查网络连接或浏览器设置');
+                    console.error('建议：1. 确保 cloudbase-sdk 目录存在 2. 确保 cloudbase.full.js 文件已下载 3. 尝试使用其他浏览器 4. 暂时关闭浏览器的跟踪预防功能');
+                    window.cloudbaseSDKLoaded = false;
+                    loadCloudBaseConfig();
+                };
+                document.head.appendChild(relativeSdkScript);
+            };
+            document.head.appendChild(sdkScript);
+        }
+        
+        // 等待SDK加载完成后加载配置文件
+        function loadCloudBaseConfig() {
+            console.log('加载 tencent-cloud-config.js');
+            const configScript = document.createElement('script');
+            configScript.src = 'tencent-cloud-config.js?t=' + Date.now();
+            configScript.onload = function() {
+                console.log('tencent-cloud-config.js 加载完成');
+            };
+            configScript.onerror = function() {
+                console.error('tencent-cloud-config.js 加载失败');
+                console.error('云功能将无法使用');
+            };
+            document.head.appendChild(configScript);
+        }
+        
+        // 开始加载
+        loadCloudBaseSDK();
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 加载完成');
+        });
+    </script>
+</head>
+<body>
+    <!-- 顶部状态栏 -->
+    <header class="top-bar">
+        <div class="status-container">
+            <div class="char-info">
+                <span class="char-name" id="charName">无名战士</span>
+                <span class="char-level">Lv.<span id="charLevel">1</span></span>
+                <span class="char-exp"><span id="charExp">0</span>/<span id="charMaxExp">100</span></span>
+            </div>
+            <div class="resources">
+                <div class="resource-item">
+                    <span class="resource-icon">💰</span>
+                    <span class="resource-value" id="goldAmount">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">💎</span>
+                    <span class="resource-value" id="diamondAmount">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">🎟️</span>
+                    <span class="resource-value" id="eliteTicketAmount">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">😈</span>
+                    <span class="resource-value" id="hellTicketAmount">0</span>
+                </div>
+                <div class="resource-item">
+                    <button class="btn-fish-mode" id="fishModeBtn" onclick="toggleFishMode()">摸鱼模式</button>
+                </div>
+            </div>
+            <div class="buff-status" id="buffStatus"></div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 战斗页面 -->
+        <div class="page" id="battlePage">
+            <div class="area-selector">
+                <div class="area-title">当前区域</div>
+                <div class="area-info" id="currentArea">
+                    <div class="area-name" id="areaName">新手平原</div>
+                    <div class="area-level" id="areaLevel">Lv.1-10</div>
+                </div>
+                <div class="area-buttons">
+                    <button class="btn-select-area" onclick="showAreaModal()">⚔️ 挂机区域</button>
+                    <button class="btn-elite-dungeon" onclick="showEliteDungeonModal()">😈 精英副本</button>
+                    <button class="btn-hell-dungeon" onclick="showHellDungeonModal()">💀 地狱副本</button>
+                </div>
+            </div>
+
+            <div class="battle-log" id="battleLog">
+                <div class="log-entry system">欢迎来到文字冒险世界！</div>
+                <div class="log-entry system">选择职业开始你的冒险之旅...</div>
+            </div>
+
+            <div class="battle-status" id="battleStatus">
+                <button class="battle-chat-btn" onclick="showChat()" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 10; padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">💬</button>
+                <!-- 伤害飘血容器 - 叠加在怪物血条上方 -->
+                <div class="battle-area" id="battleArea"></div>
+
+                <div class="enemy-info">
+                    <div class="enemy-name" id="enemyName">--</div>
+                    <div class="enemy-stats" id="enemyStats">
+                        <span id="enemyAtk">--</span>
+                        <span id="enemyDef">--</span>
+                    </div>
+                    <div class="enemy-hp-bar">
+                        <div class="hp-bar-fill" id="enemyHpBar" style="width: 0%"></div>
+                    </div>
+                    <div class="enemy-hp-text"><span id="enemyCurrentHp">0</span>/<span id="enemyMaxHp">0</span></div>
+                    <div class="enemy-crit-stats" id="enemyCritStats">
+                        <span id="enemyCrit">暴击: --</span>
+                        <span id="enemyAntiCrit">抗暴: --</span>
+                        <span id="enemyCritDmg">爆伤: --</span>
+                    </div>
+                </div>
+                <div class="player-hp-bar">
+                    <div class="hp-bar-fill player" id="playerHpBar" style="width: 100%"></div>
+                </div>
+                <div class="player-hp-text"><span id="playerCurrentHp">100</span>/<span id="playerMaxHp">100</span></div>
+            </div>
+        </div>
+
+        <!-- 人物/装备页面 -->
+        <div class="page" id="characterPage">
+            <div class="character-panel">
+                <div class="char-tabs">
+                    <button class="char-tab active" data-tab="stats">📊 角色属性</button>
+                    <button class="char-tab" data-tab="equipment">⚔️ 身上装备</button>
+                </div>
+
+                <!-- 角色属性标签页 -->
+                <div class="char-tab-content active" id="statsTab">
+                    <div class="char-stats">
+                    <div class="stats-header">
+                        <h3>📊 角色属性</h3>
+                    </div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">生命值</span>
+                                <span class="stat-value" id="statHp">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">攻击力</span>
+                                <span class="stat-value" id="statAtk">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">防御力</span>
+                                <span class="stat-value" id="statDef">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">攻速</span>
+                                <span class="stat-value" id="statAtkSpd">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">暴击率</span>
+                                <span class="stat-value" id="statCrit">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">爆伤</span>
+                                <span class="stat-value" id="statCritDmg">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">抗暴</span>
+                                <span class="stat-value" id="statAntiCrit">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">抗爆</span>
+                                <span class="stat-value" id="statAntiCritDmg">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">吸血</span>
+                                <span class="stat-value" id="statVamp">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">穿透</span>
+                                <span class="stat-value" id="statPenetrate">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">经验加成</span>
+                                <span class="stat-value" id="statExpBonus">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">金币加成</span>
+                                <span class="stat-value" id="statGoldBonus">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">爆率加成</span>
+                                <span class="stat-value" id="statDropBonus">0%</span>
+                            </div>
+                        </div>
+                        <!-- 称号展示区域 -->
+                        <div class="titles-section" id="titlesSection">
+                            <div class="titles-header">🏆 称号</div>
+                            <div class="titles-list" id="titlesList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 身上装备标签页 -->
+                <div class="char-tab-content" id="equipmentTab">
+                    <div class="equipment-panel">
+                        <div class="equipment-slots">
+                            <div class="equip-slot" data-slot="weapon" onclick="showEquippedItemDetail('weapon')">
+                                <div class="slot-icon">⚔️</div>
+                                <div class="slot-name">武器</div>
+                                <div class="equip-info" id="weaponInfo"></div>
+                            </div>
+                            <div class="equip-slot" data-slot="helmet" onclick="showEquippedItemDetail('helmet')">
+                                <div class="slot-icon">🪖</div>
+                                <div class="slot-name">头盔</div>
+                                <div class="equip-info" id="helmetInfo"></div>
+                            </div>
+                            <div class="equip-slot" data-slot="armor" onclick="showEquippedItemDetail('armor')">
+                                <div class="slot-icon">🛡️</div>
+                                <div class="slot-name">铠甲</div>
+                                <div class="equip-info" id="armorInfo"></div>
+                            </div>
+                            <div class="equip-slot" data-slot="boots" onclick="showEquippedItemDetail('boots')">
+                                <div class="slot-icon">👢</div>
+                                <div class="slot-name">靴子</div>
+                                <div class="equip-info" id="bootsInfo"></div>
+                            </div>
+                            <div class="equip-slot" data-slot="ring" onclick="showEquippedItemDetail('ring')">
+                                <div class="slot-icon">💍</div>
+                                <div class="slot-name">戒指</div>
+                                <div class="equip-info" id="ringInfo"></div>
+                            </div>
+                            <div class="equip-slot" data-slot="necklace" onclick="showEquippedItemDetail('necklace')">
+                                <div class="slot-icon">📿</div>
+                                <div class="slot-name">项链</div>
+                                <div class="equip-info" id="necklaceInfo"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 背包页面 -->
+        <div class="page" id="inventoryPage">
+
+            <!-- 碎片统计 -->
+            <div class="shard-grid" id="shardGrid" style="margin-bottom:8px;">
+                <!-- 由JS渲染 -->
+            </div>
+
+            <!-- 容量 + 过滤（一行） -->
+            <div class="inventory-header" style="flex-wrap:wrap;gap:6px;">
+                <div class="capacity">
+                    <span id="inventoryCount">0</span>/<span id="inventoryMax">50</span>
+                </div>
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-type="all">全部</button>
+                    <button class="filter-btn" data-type="weapon">⚔️</button>
+                    <button class="filter-btn" data-type="armor">🛡️</button>
+                    <button class="filter-btn" data-type="helmet">🪖</button>
+                    <button class="filter-btn" data-type="boots">👢</button>
+                    <button class="filter-btn" data-type="ring">💍</button>
+                    <button class="filter-btn" data-type="necklace">📿</button>
+                </div>
+            </div>
+
+            <!-- 背包物品列表 -->
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- 由JS渲染 -->
+            </div>
+
+            <!-- 自动分解设置（底部固定） -->
+            <div class="auto-dismantle-bar">
+                <div class="dismantle-quality-list" id="dismantleQualityList">
+                    <!-- 由JS渲染 -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 技能/宝石页面 -->
+        <div class="page" id="skillPage">
+            <div class="skill-tabs">
+                <button class="skill-tab active" data-tab="gems">💎 宝石仓库</button>
+                <button class="skill-tab" data-tab="skills">技能</button>
+            </div>
+
+            <div class="tab-content active" id="gemsTab">
+                <div class="gem-list" id="gemList">
+                    <!-- 宝石列表将通过JS动态生成 -->
+                </div>
+                <!-- 宝石Tab自动分解设置（移入tab内，跟随tab显隐） -->
+                <div class="auto-dismantle-bar" id="gemAutoDismantleBar">
+                    <div class="auto-dismantle-title">
+                        <span>🔧 自动分解</span>
+                        <label class="switch-label">
+                            <input type="checkbox" id="autoDismantleToggleGem" onchange="toggleAutoDismantle(this.checked, 'gem')">
+                            <span class="switch-text">开启</span>
+                        </label>
+                    </div>
+                    <div class="dismantle-quality-list" id="dismantleQualityListGem">
+                        <!-- 由JS渲染5个品质复选框 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="skillsTab">
+                <div class="equipped-skills">
+                    <h3>已装备技能 (0/4)</h3>
+                    <div class="skill-slots">
+                        <div class="skill-slot" data-slot="1" onclick="showSkillModal(1)">
+                            <div class="skill-icon">➕</div>
+                            <div class="skill-name">技能1</div>
+                        </div>
+                        <div class="skill-slot" data-slot="2" onclick="showSkillModal(2)">
+                            <div class="skill-icon">➕</div>
+                            <div class="skill-name">技能2</div>
+                        </div>
+                        <div class="skill-slot" data-slot="3" onclick="showSkillModal(3)">
+                            <div class="skill-icon">➕</div>
+                            <div class="skill-name">技能3</div>
+                        </div>
+                        <div class="skill-slot" data-slot="4" onclick="showSkillModal(4)">
+                            <div class="skill-icon">➕</div>
+                            <div class="skill-name">技能4</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-pool">
+                    <h3>技能池</h3>
+                    <div class="skill-list" id="skillList">
+                        <!-- 技能池将通过JS动态生成 -->
+                    </div>
+                </div>
+                <!-- 技能Tab自动分解设置（移入tab内，跟随tab显隐） -->
+                <div class="auto-dismantle-bar" id="skillAutoDismantleBar">
+                    <div class="auto-dismantle-title">
+                        <span>🔧 自动分解</span>
+                        <label class="switch-label">
+                            <input type="checkbox" id="autoDismantleToggleSkill" onchange="toggleAutoDismantle(this.checked, 'skill')">
+                            <span class="switch-text">开启</span>
+                        </label>
+                    </div>
+                    <div class="dismantle-quality-list" id="dismantleQualityListSkill">
+                        <!-- 由JS渲染技能品质复选框 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 黑市页面 -->
+        <div class="page" id="shopPage">
+            <div class="shop-tabs">
+                <button class="shop-tab active" data-tab="goldShop">💰 金币商店</button>
+                <button class="shop-tab" data-tab="itemShop">🎒 道具商店</button>
+            </div>
+
+            <!-- 金币商店（动态渲染） -->
+            <div class="tab-content active" id="goldShopTab"></div>
+
+            <!-- 道具商店（动态渲染） -->
+            <div class="tab-content" id="itemShopTab"></div>
+        </div>
+
+        <!-- 更多页面 -->
+        <div class="page" id="morePage">
+            <div class="more-menu">
+                <button class="menu-item" onclick="showSettings()">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">游戏设置</span>
+                </button>
+                <button class="menu-item" onclick="showQuests()">
+                    <span class="menu-icon">📜</span>
+                    <span class="menu-text">任务系统</span>
+                </button>
+                <button class="menu-item" onclick="showRedeemCode()">
+                    <span class="menu-icon">🎫</span>
+                    <span class="menu-text">兑换码</span>
+                </button>
+                <button class="menu-item" onclick="showGuide()">
+                    <span class="menu-icon">📖</span>
+                    <span class="menu-text">游戏攻略</span>
+                </button>
+                <button class="menu-item" onclick="showStatistics()">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">数据统计</span>
+                </button>
+                <button class="menu-item" onclick="showLeaderboard()">
+                    <span class="menu-icon">🏆</span>
+                    <span class="menu-text">排行榜</span>
+                </button>
+                <button class="menu-item" onclick="showAbout()">
+                    <span class="menu-icon">ℹ️</span>
+                    <span class="menu-text">关于游戏</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-page="battle">
+            <span class="nav-icon">⚔️</span>
+            <span class="nav-text">战斗</span>
+        </button>
+        <button class="nav-btn" data-page="character">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">人物</span>
+        </button>
+        <button class="nav-btn" data-page="inventory">
+            <span class="nav-icon">🎒</span>
+            <span class="nav-text">背包</span>
+        </button>
+        <button class="nav-btn" data-page="skill">
+            <span class="nav-icon">✨</span>
+            <span class="nav-text">技能</span>
+        </button>
+        <button class="nav-btn" data-page="shop">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-text">黑市</span>
+        </button>
+        <button class="nav-btn" data-page="more">
+            <span class="nav-icon">⋯</span>
+            <span class="nav-text">更多</span>
+        </button>
+    </nav>
+
+    <!-- 职业选择模态框 -->
+    <div class="modal" id="classModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择职业</h2>
+            </div>
+            <div class="modal-body">
+                <div class="class-card" data-class="assassin">
+                    <div class="class-recommend-tag">新手推荐</div>
+                    <div class="class-icon">🗡️</div>
+                    <h3>刺客</h3>
+                    <p>近战敏捷，高攻速高暴击，爆发极强<br><small>攻速上限3.0（技能伤害普通）</small></p>
+                    <ul>
+                        <li>生命值 +10%</li>
+                        <li>攻击力 +15%</li>
+                        <li>攻速 +20%</li>
+                        <li>暴击率 +15%</li>
+                    </ul>
+                    <button class="btn-select-class">选择刺客</button>
+                </div>
+                <div class="class-card" data-class="warrior">
+                    <div class="class-icon">⚔️</div>
+                    <h3>战士</h3>
+                    <p>近战输出，高防御高生命，生存能力强<br><small>攻速上限2.8（技能伤害中等）</small></p>
+                    <ul>
+                        <li>生命值 +20%</li>
+                        <li>攻击力 +10%</li>
+                        <li>防御力 +15%</li>
+                    </ul>
+                    <button class="btn-select-class">选择战士</button>
+                </div>
+                <div class="class-card" data-class="mage">
+                    <div class="class-icon">🔮</div>
+                    <h3>法师</h3>
+                    <p>远程魔法，高爆发群攻，技能强力<br><small>攻速上限2.5（技能伤害最高）</small></p>
+                    <ul>
+                        <li>生命值 +5%</li>
+                        <li>攻击力 +25%</li>
+                        <li>暴击率 +10%</li>
+                    </ul>
+                    <button class="btn-select-class" onclick="selectClass('mage')">选择法师</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 区域选择模态框 -->
+    <div class="modal" id="areaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择区域</h2>
+            </div>
+            <div class="modal-body">
+                <div class="area-list" id="areaList">
+                    <!-- 区域列表将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 物品详情模态框 -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="itemModalTitle">物品详情</h2>
+            </div>
+            <div class="modal-body" id="itemModalBody">
+                <!-- 物品详情将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 精英副本模态框 -->
+    <div class="modal" id="eliteDungeonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>😈 精英副本</h2>
+            </div>
+            <div class="modal-body">
+                <div class="dungeon-tip">
+                    <span class="tip-icon">💎</span>
+                    <span>门票: <strong id="eliteTicketCount">0</strong></span>
+                </div>
+                <div class="dungeon-lock-tip" id="eliteLockTip" style="display:none">
+                    <span>🔒 需达到 Lv.25 才能解锁精英副本</span>
+                </div>
+                <div class="dungeon-list" id="eliteDungeonList">
+                    <!-- 精英副本列表将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地狱副本模态框 -->
+    <div class="modal" id="hellDungeonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💀 地狱副本</h2>
+            </div>
+            <div class="modal-body">
+                <div class="dungeon-tip">
+                    <span class="tip-icon">💎</span>
+                    <span>门票: <strong id="hellTicketCount">0</strong></span>
+                </div>
+                <div class="dungeon-lock-tip" id="hellLockTip" style="display:none">
+                    <span>🔒 需达到 Lv.45 才能解锁地狱副本</span>
+                </div>
+                <div class="dungeon-list" id="hellDungeonList">
+                    <!-- 地狱副本列表将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 装备详情模态框 -->
+    <div class="modal" id="itemDetailModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>装备详情</h2>
+                <button class="modal-close" onclick="closeModal('itemDetailModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="itemDetailContent"></div>
+                <div class="item-detail-enhance-section" id="enhanceSection"></div>
+                <div class="modal-actions">
+                    <button class="btn-action btn-equip" id="btnEquipItem">装备</button>
+                    <button class="btn-action btn-enhance" id="btnEnhanceItem">强化</button>
+                    <button class="btn-action btn-inlay" id="btnInlayGem" onclick="showGemSelectionForEquip(window._currentItemIndex)">镶嵌</button>
+                    <button class="btn-action btn-open-hole" id="btnOpenHole" onclick="showOpenHoleConfirm(window._currentItemIndex)">开孔</button>
+                    <button class="btn-action btn-dismantle" id="btnDismantleItem">分解</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 宝石详情模态框 -->
+    <div class="modal" id="gemDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>宝石详情</h2>
+                <button class="modal-close" onclick="closeModal('gemDetailModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="gemDetailContent"></div>
+                <div class="modal-actions">
+                    <button class="btn-action btn-equip" onclick="equipGem(window._currentGemIndex); closeModal('gemDetailModal')">镶嵌</button>
+                    <button class="btn-action btn-enhance" onclick="enhanceGem(window._currentGemIndex); closeModal('gemDetailModal')">强化</button>
+                    <button class="btn-action btn-dismantle" onclick="dismantleGem(window._currentGemIndex); closeModal('gemDetailModal')">分解</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 技能详情模态框（背包技能书） -->
+    <div class="modal" id="skillDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>技能详情</h2>
+                <button class="modal-close" onclick="closeModal('skillDetailModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="skillDetailContent"></div>
+                <div class="modal-actions">
+                    <button class="btn-action btn-equip" onclick="useSkillBook(window._currentSkillIndex); closeModal('skillDetailModal')">装备</button>
+                    <button class="btn-action btn-enhance" onclick="enhanceSkill(window._currentSkillIndex); showSkillDetail(window._currentSkillIndex)">强化</button>
+                    <button class="btn-action btn-dismantle" onclick="dismantleSkill(window._currentSkillIndex); closeModal('skillDetailModal')">分解</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 已装备技能详情模态框 -->
+    <div class="modal" id="equippedSkillDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>已装备技能</h2>
+                <button class="modal-close" onclick="closeModal('equippedSkillDetailModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="equippedSkillDetailContent"></div>
+                <div class="modal-actions">
+                    <button class="btn-action btn-dismantle" onclick="unequipSkill(window._currentEquippedSkillSlot); closeModal('equippedSkillDetailModal')">卸下</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏设置模态框 -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ 游戏设置</h2>
+                <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary-color);">📋 玩家信息 <span style="font-size: 12px; color: #ff9800; font-weight: normal;">注意截图保存！！！</span></h3>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">玩家ID (不可修改)</label>
+                        <input type="text" id="settingsPlayerId" readonly style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">玩家名称</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="settingsPlayerName" style="flex: 1; padding: 10px; border-radius: 6px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                            <button class="btn-action" onclick="updatePlayerName()" style="padding: 10px 15px;">修改</button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">密码</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="settingsPlayerPassword" style="flex: 1; padding: 10px; border-radius: 6px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">新密码 (8位字母数字混合)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="settingsNewPassword" placeholder="输入新密码" style="flex: 1; padding: 10px; border-radius: 6px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                            <button class="btn-action" onclick="updatePlayerPassword()" style="padding: 10px 15px; background: linear-gradient(135deg, #27ae60, #2ecc71);">修改密码</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-action" onclick="switchAccount();">切换账号</button>
+                    <button class="btn-action btn-dismantle" onclick="if(confirm('确定要重置游戏？此操作不可恢复！')){localStorage.clear(); location.reload();}">重置游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任务系统模态框 -->
+    <div class="modal" id="questsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 每日任务</h2>
+                <button class="modal-close" onclick="closeModal('questsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="quest-list" id="dailyTaskList">
+                    <!-- 由 renderDailyTasks() 动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 兑换码模态框 -->
+    <div class="modal" id="redeemCodeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎫 兑换码 &amp; 特权中心</h2>
+                <button class="modal-close" onclick="closeModal('redeemCodeModal')">✕</button>
+            </div>
+            <div class="modal-body" id="redeemModalBody">
+                <!-- 由 renderRedeemModal() 动态填充 -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 游戏攻略模态框 -->
+    <div class="modal" id="guideModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📖 游戏攻略</h2>
+                <button class="modal-close" onclick="closeModal('guideModal')">✕</button>
+            </div>
+            <div class="modal-body guide-content">
+                <h3>📦 装备掉落</h3>
+                <div class="guide-section">
+                    <p>🎯 <strong>挂机区域</strong>：可爆出传说及以下所有品质的装备</p>
+                    <p>😈 <strong>精英副本</strong>：最高能爆出湮灭品质的装备</p>
+                    <p>💀 <strong>地狱副本</strong>：最高能爆出终焉品质的装备</p>
+                </div>
+
+                <h3>⭐ 奇遇BOSS</h3>
+                <div class="guide-section">
+                    <p>所有玩家在击杀挂机区域中的怪物时都有概率触发奇遇BOSS</p>
+                    <p>触发后必定爆出辉煌及以上品质的稀有装备</p>
+                </div>
+
+                <h3>⚔️ 强化系统</h3>
+                <div class="guide-section">
+                    <p>强化装备/宝石/技能需要消耗对应品质的碎片+金币</p>
+                    <p>强化能大幅度提高属性</p>
+                    <p>⚠️ 强化失败物品会消失，可购买保护卷保护</p>
+                </div>
+
+                <h3>🎭 职业选择</h3>
+                <div class="guide-section">
+                    <p>🗡️ <strong>刺客</strong>：攻速快，开荒厉害</p>
+                    <p>🔮 <strong>法师</strong>：攻击高，技能伤害高</p>
+                    <p>⚔️ <strong>战士</strong>：均衡发展</p>
+                </div>
+
+                <h3>💡 新手建议</h3>
+                <div class="guide-section tip">
+                    <p>优先使用兑换码可以有效提升游戏体验！</p>
+                </div>
+
+                <div class="guide-footer">
+                    <p>感谢您的支持 🎮</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据统计模态框 -->
+    <div class="modal" id="statisticsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 数据统计</h2>
+                <button class="modal-close" onclick="closeModal('statisticsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="statisticsContent" class="stats-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关于游戏模态框 -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ℹ️ 关于游戏</h2>
+                <button class="modal-close" onclick="closeModal('aboutModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="about-content">
+                    <div class="about-title">文字冒险 - 放置RPG</div>
+                    <div class="about-version">版本 v1.0.0</div>
+                    <p>一款休闲放置类RPG游戏，选择职业、挂机战斗、收集装备、不断变强。</p>
+                    <p style="color: #888; margin-top: 16px; font-size: 12px;">感谢游玩！祝您游戏愉快 🎮</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 兑换成功奖励弹窗 -->
+    <div class="modal" id="redeemRewardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 兑换成功</h2>
+                <button class="modal-close" onclick="closeModal('redeemRewardModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="redeem-reward-content" id="redeemRewardContent"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 登录界面 -->
+    <div class="modal" id="loginModal" style="display: flex;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚔️ 文字冒险</h2>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <div id="loginForm">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; text-align: left;">玩家ID</label>
+                        <input type="text" id="loginId" placeholder="输入你的玩家ID" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 16px;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; text-align: left;">密码</label>
+                        <input type="text" id="loginPassword" placeholder="输入你的密码" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 16px;">
+                    </div>
+                    <button class="btn-action" onclick="loginGame()" style="width: 100%; margin-bottom: 15px; padding: 15px;">登录游戏</button>
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <button class="btn-action" onclick="startNewGame()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #27ae60, #2ecc71);">🎮 一键开始冒险</button>
+                    </div>
+                </div>
+                <div id="gameInfo" style="display: none;">
+                    <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <p style="margin-bottom: 10px;">🎉 欢迎来到文字冒险！</p>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 5px;">请保存好你的玩家ID和密码！</p>
+                    </div>
+                    <div id="newPlayerInfo" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(39, 174, 96, 0.2); border: 2px solid #27ae60; border-radius: 8px;">
+                        <p style="margin-bottom: 10px; font-weight: bold; color: #27ae60;">📋 新玩家信息</p>
+                        <p style="margin-bottom: 5px;">玩家ID: <span id="newPlayerId" style="font-weight: bold; color: var(--primary-color);"></span></p>
+                        <p style="margin-bottom: 5px;">密码: <span id="newPlayerPassword" style="font-weight: bold; color: var(--primary-color);"></span></p>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 10px;">⚠️ 请务必记住这些信息！</p>
+                    </div>
+                    <button class="btn-action" onclick="enterGame()" style="width: 100%; padding: 15px;">进入游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 排行榜模态框 -->
+    <div class="modal" id="leaderboardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 排行榜</h2>
+                <button class="modal-close" onclick="closeModal('leaderboardModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="leaderboard-content" id="leaderboardContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天模态框 -->
+    <div class="modal" id="chatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💬 游戏聊天</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="chatAutoScrollBtn" onclick="toggleChatAutoScroll()" style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; background: #27ae60; color: white;">🔓 自动滚动</button>
+                    <button class="modal-close" onclick="closeModal('chatModal')">✕</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-preview-buttons">
+                    <button class="chat-preview-btn" onclick="showEquipPreview('backpack')">发送背包装备</button>
+                    <button class="chat-preview-btn" onclick="showEquipPreview('worn')">发送身上装备</button>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="输入消息...">
+                    <button onclick="sendChatMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 装备品质常量定义
+        const QUALITY_CONSTANTS = {
+            GRAY: 0,
+            GREEN: 1,
+            BLUE: 2,
+            PURPLE: 3,
+            ORANGE: 4,
+            RED: 5,
+            GOLD: 6,
+            PLATINUM: 7,
+            DIAMOND: 8,
+            DARKGOLD: 9,
+            MYTHIC: 10,
+            SUPREME: 11,
+            PERFECT: 12,
+            PEERLESS: 13,
+            ETERNAL: 14 // 永恒品质
+        };
+
+        // 临时调试函数
+        function debugInventory() {
+            console.log('=== 开始调试 ===');
+            
+            // 尝试直接获取变量
+            console.log('window.inventory:', window.inventory);
+            console.log('window.backpack:', window.backpack);
+            console.log('window.gameState:', window.gameState);
+            console.log('window.game:', window.game);
+            
+            // 尝试localStorage
+            try {
+                const keys = Object.keys(localStorage);
+                console.log('localStorage中的key:', keys);
+                keys.forEach(key => {
+                    if (key.includes('game') || key.includes('inventory') || key.includes('backpack') || key.includes('state')) {
+                        const value = localStorage.getItem(key);
+                        console.log(`localStorage.${key}:`, value ? value.substring(0, 200) : 'null');
+                        try {
+                            const parsed = JSON.parse(value);
+                            if (parsed.inventory) {
+                                console.log(`localStorage.${key} 有inventory:`, parsed.inventory);
+                            }
+                        } catch (e) {
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('localStorage错误:', e);
+            }
+            
+            console.log('=== 调试结束 ===');
+        }
+
+        // 聊天预览功能
+        // 装备品质常量定义
+        const QUALITY_NAMES = [
+            '灰色', '绿色', '蓝色', '紫色', '橙色', '红色', '金色', '白金', '钻石', '暗金', '神话', '至尊', '完美', '无双', '永恒'
+        ];
+
+        // 聊天预览功能
+        function showEquipPreview(type) {
+            switch(type) {
+                case 'backpack':
+                    showBackpackEquipSelection();
+                    break;
+                case 'gem':
+                    showGemSelection();
+                    break;
+                case 'worn':
+                    showWornEquipSelection();
+                    break;
+            }
+        }
+
+        function showBackpackEquipSelection() {
+            // 调用调试函数
+            debugInventory();
+            
+            // 尝试从localStorage获取游戏状态
+            let inventoryItems = [];
+            try {
+                const savedState = localStorage.getItem('gameSave');
+                if (savedState) {
+                    console.log('原始gameSave数据:', savedState);
+                    
+                    // 尝试使用game.js中的解密函数，或者自己实现解密
+                    let gameSave = null;
+                    try {
+                        if (typeof decryptData !== 'undefined') {
+                            gameSave = decryptData(savedState);
+                        } else {
+                            gameSave = decryptDataLocal(savedState);
+                        }
+                        console.log('解密后的游戏存档:', gameSave);
+                        inventoryItems = gameSave.inventory || [];
+                    } catch (e) {
+                        console.error('解密失败:', e);
+                    }
+                    
+                    console.log('背包物品:', inventoryItems);
+                    
+                    // 详细输出每个物品的信息
+                    inventoryItems.forEach((item, index) => {
+                        if (item) {
+                            console.log(`物品${index} - 名称:`, item.name, '品质:', item.quality, '品质名称:', item.qualityName, '品质常量:', QUALITY_CONSTANTS.PURPLE, '是否符合:', item.quality >= QUALITY_CONSTANTS.PURPLE, 'item:', item);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('从localStorage获取游戏存档失败:', e);
+            }
+            
+            // 过滤掉非装备物品（如宝石、消耗品等），只保留有slot属性的装备
+            const purpleEquips = inventoryItems.filter(item => item && item.slot && (item.quality >= QUALITY_CONSTANTS.PURPLE || (item.qualityName && item.quality >= 3)));
+            
+            console.log('紫色品质以上物品数量:', purpleEquips.length);
+            
+            if (purpleEquips.length === 0) {
+                showToast('背包中没有紫色品质以上的装备');
+                return;
+            }
+            
+            // 显示装备选择界面
+            showEquipSelectionModal(purpleEquips, 'backpack');
+        }
+        
+        function decryptDataLocal(encryptedData, key = 'diablo_warcraft') {
+            try {
+                const decoded = decodeURIComponent(escape(atob(encryptedData)));
+                let decrypted = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                }
+                return JSON.parse(decrypted);
+            } catch (e) {
+                console.error('本地解密失败:', e);
+                return null;
+            }
+        }
+        
+
+
+        function showGemSelection() {
+            // 获取背包中橙色品质以上的宝石
+            let gemPool = [];
+            try {
+                const savedState = localStorage.getItem('gameSave');
+                if (savedState) {
+                    let gameSave = null;
+                    try {
+                        if (typeof decryptData !== 'undefined') {
+                            gameSave = decryptData(savedState);
+                        } else {
+                            gameSave = decryptDataLocal(savedState);
+                        }
+                        console.log('从localStorage获取游戏存档:', gameSave);
+                        gemPool = gameSave.gemPool || gameSave.gems || [];
+                        console.log('宝石池:', gemPool);
+                    } catch (e) {
+                        console.error('解密失败:', e);
+                    }
+                }
+            } catch (e) {
+                console.error('从localStorage获取游戏存档失败:', e);
+            }
+            
+            const orangeGems = gemPool.filter(gem => gem && gem.quality >= QUALITY_CONSTANTS.ORANGE);
+            
+            if (orangeGems.length === 0) {
+                showToast('背包中没有橙色品质以上的宝石');
+                return;
+            }
+            
+            // 显示宝石选择界面
+            showGemSelectionModal(orangeGems);
+        }
+
+        function showWornEquipSelection() {
+            // 获取身上紫色品质以上的装备
+            let equipment = {};
+            try {
+                const savedState = localStorage.getItem('gameSave');
+                if (savedState) {
+                    let gameSave = null;
+                    try {
+                        if (typeof decryptData !== 'undefined') {
+                            gameSave = decryptData(savedState);
+                        } else {
+                            gameSave = decryptDataLocal(savedState);
+                        }
+                        console.log('从localStorage获取游戏存档:', gameSave);
+                        equipment = gameSave.equipment || gameSave.wornEquipment || {};
+                        console.log('身上装备:', equipment);
+                    } catch (e) {
+                        console.error('解密失败:', e);
+                    }
+                }
+            } catch (e) {
+                console.error('从localStorage获取游戏存档失败:', e);
+            }
+            
+            const purpleEquips = [];
+            
+            // 遍历装备槽位
+            const slots = ['weapon', 'helmet', 'armor', 'boots', 'ring', 'necklace'];
+            slots.forEach(slot => {
+                const item = equipment[slot];
+                if (item && (item.quality >= QUALITY_CONSTANTS.PURPLE || (item.qualityName && item.quality >= 3))) {
+                    purpleEquips.push(item);
+                }
+            });
+            
+            if (purpleEquips.length === 0) {
+                showToast('身上没有紫色品质以上的装备');
+                return;
+            }
+            
+            // 显示装备选择界面
+            showEquipSelectionModal(purpleEquips, 'worn');
+        }
+
+        let currentEquipItems = null;
+        let currentEquipType = null;
+        let currentGemItems = null;
+        
+        let chatEquipData = {};
+        let chatGemData = {};
+        let chatDataCounter = 0;
+        
+        function showChatEquipDetail(dataIdOrEncoded) {
+            try {
+                let item = null;
+                if (dataIdOrEncoded.startsWith('equip_')) {
+                    item = chatEquipData[dataIdOrEncoded];
+                } else {
+                    const equipDataDecoded = decodeURIComponent(escape(atob(dataIdOrEncoded)));
+                    item = JSON.parse(equipDataDecoded);
+                }
+                
+                if (item) {
+                    showItemDetailFromData(item);
+                } else {
+                    showToast('装备数据已过期');
+                }
+            } catch (e) {
+                console.error('解析装备数据失败:', e);
+                showToast('装备数据解析失败');
+            }
+        }
+        
+        function showItemDetailFromData(item) {
+            if (typeof EQUIPMENT_SLOTS === 'undefined' || typeof EQUIPMENT_QUALITIES === 'undefined' || typeof AFFIXES === 'undefined') {
+                showToast('游戏未完全加载，请稍后再试');
+                return;
+            }
+            
+            const slotConfig = EQUIPMENT_SLOTS[item.slot] || {name: '未知', icon: '?'};
+            const qualityConfig = EQUIPMENT_QUALITIES[item.quality] || EQUIPMENT_QUALITIES[0];
+            const score = Math.floor(calculateEquipmentScore(item));
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'chatItemDetailModal';
+            modal.style.display = 'block';
+            
+            let html = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>装备详情</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="item-detail-header" style="color: ${qualityConfig.color}">
+                            <span class="item-detail-icon">${slotConfig.icon}</span>
+                            <div class="item-detail-name-group">
+                                <span class="item-detail-name">${item.name}</span>
+                                <span class="item-detail-quality">${item.qualityName}</span>
+                            </div>
+                        </div>
+                        <div class="item-detail-meta">
+                            <div class="item-detail-meta-item">
+                                <span class="meta-label">槽位:</span>
+                                <span class="meta-value">${slotConfig.name}</span>
+                            </div>
+                            <div class="item-detail-meta-item">
+                                <span class="meta-label">强化等级:</span>
+                                <span class="meta-value" style="color: #f39c12">Lv.${item.level}/${item.maxLevel}</span>
+                            </div>
+                            <div class="item-detail-meta-item">
+                                <span class="meta-label">装备评分:</span>
+                                <span class="meta-value" style="color: #ffd700; font-weight: bold">${score}</span>
+                            </div>
+                        </div>
+            `;
+            
+            if (item.stats) {
+                html += '<div class="item-detail-stats-section"><div class="section-title">基础属性</div><div class="item-detail-stats">';
+                const statMap = {
+                    atk: {name: '攻击力', unit: ''},
+                    def: {name: '防御力', unit: ''},
+                    hp: {name: '生命值', unit: ''},
+                    crit: {name: '暴击率', unit: '%'},
+                    critDmg: {name: '暴击伤害', unit: '%'},
+                    antiCrit: {name: '抗暴', unit: '%'},
+                    antiCritDmg: {name: '抗暴伤害', unit: '%'},
+                    atkSpd: {name: '攻击速度', unit: '%'},
+                    vamp: {name: '吸血', unit: '%'},
+                    penetrate: {name: '穿透', unit: '%'},
+                    expBonus: {name: '经验加成', unit: '%'},
+                    goldBonus: {name: '金币加成', unit: '%'},
+                    dropBonus: {name: '爆率加成', unit: '%'},
+                    maxAtk: {name: '最大攻击力', unit: ''}
+                };
+                
+                for (const [key, value] of Object.entries(item.stats)) {
+                    const statInfo = statMap[key];
+                    if (statInfo && value !== 0 && value !== null) {
+                        let formattedValue;
+                        if (typeof value === 'number') {
+                            if (value % 1 === 0) {
+                                formattedValue = value;
+                            } else {
+                                formattedValue = parseFloat(value.toFixed(1));
+                            }
+                        } else {
+                            formattedValue = value;
+                        }
+                        html += `<div class="stat-row">
+                            <span class="stat-name">${statInfo.name}:</span>
+                            <span class="stat-value" style="color: #2ecc71">+${formattedValue}${statInfo.unit}</span>
+                        </div>`;
+                    }
+                }
+                html += '</div></div>';
+            }
+            
+
+            
+            html += '</div></div>';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+        
+        function showChatGemDetail(gemDataEncoded) {
+            try {
+                const gemDataDecoded = decodeURIComponent(escape(atob(gemDataEncoded)));
+                const gem = JSON.parse(gemDataDecoded);
+                showGemDetailFromData(gem);
+            } catch (e) {
+                console.error('解析宝石数据失败:', e);
+                showToast('宝石数据解析失败');
+            }
+        }
+        
+        function showGemDetailFromData(gem) {
+            if (typeof GEM_QUALITIES === 'undefined' || typeof GEM_AFFIXES === 'undefined') {
+                showToast('游戏未完全加载，请稍后再试');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'chatGemDetailModal';
+            modal.style.display = 'block';
+            
+            let affixHtml = '';
+            if (gem.affixes && gem.affixes.length > 0) {
+                gem.affixes.forEach(affix => {
+                    const suffix = affix.type === 'percentage' ? '%' : '';
+                    const statVal = gem.stats[affix.key] || gem.stats[affix.type] || 0;
+                    affixHtml += `<div>${affix.icon} ${affix.name}: +${statVal}${suffix}</div>`;
+                });
+            } else if (gem.affixType) {
+                const affixConfig = GEM_AFFIXES[gem.affixType];
+                if (affixConfig) {
+                    const suffix = affixConfig.type === 'percentage' ? '%' : '';
+                    affixHtml = `<div>${gem.affixIcon || '💎'} ${affixConfig.name}: +${gem.stats[gem.affixType] || 0}${suffix}</div>`;
+                }
+            }
+            
+            let html = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>宝石详情</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="gem-detail-header" style="color: ${gem.color || '#fff'}">
+                            <span class="gem-detail-icon">💎</span>
+                            <span class="gem-detail-name">${gem.name}</span>
+                            <span class="gem-detail-quality">${gem.qualityName || ''}</span>
+                        </div>
+                        <div class="gem-detail-stats">
+                            ${affixHtml}
+                            <div>等级: ${gem.level}/${gem.maxLevel}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+
+        function showEquipSelectionModal(items, type) {
+            currentEquipItems = items;
+            currentEquipType = type;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'equipSelectionModal';
+            modal.style.display = 'block';
+            
+            console.log('装备数据:', items);
+            
+            const statMap = {
+                atk: { name: '攻击', unit: '' },
+                hp: { name: '生命', unit: '' },
+                def: { name: '防御', unit: '' },
+                goldBonus: { name: '金币加成', unit: '%' },
+                critDmg: { name: '爆伤', unit: '%' },
+                atkSpd: { name: '攻速', unit: '%' },
+                antiCritDmg: { name: '抗爆伤', unit: '%' },
+                vamp: { name: '吸血', unit: '%' },
+                expBonus: { name: '经验加成', unit: '%' },
+                crit: { name: '暴击', unit: '%' },
+                antiCrit: { name: '抗暴击', unit: '%' },
+                penetrate: { name: '穿透', unit: '%' }
+            };
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>选择要预览的装备</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="equip-selection-list">
+                            ${items.map((item, index) => {
+                                console.log(`装备${index}数据:`, item);
+                                const score = calculateEquipmentScore(item);
+                                
+                                let statsLines = [];
+                                if (item.stats) {
+                                    for (const [key, value] of Object.entries(item.stats)) {
+                                        if (value > 0 && statMap[key]) {
+                                            statsLines.push(`${statMap[key].name}: +${value}${statMap[key].unit}`);
+                                        }
+                                    }
+                                } else if (item.baseStats) {
+                                    for (const [key, value] of Object.entries(item.baseStats)) {
+                                        if (value > 0 && statMap[key]) {
+                                            statsLines.push(`${statMap[key].name}: +${value}${statMap[key].unit}`);
+                                        }
+                                    }
+                                }
+                                
+                                return `
+                                <div class="equip-selection-item" style="padding: 10px; margin: 10px 0; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                        <input type="checkbox" id="equip-${index}" value="${index}" style="margin-right: 10px;">
+                                        <label for="equip-${index}" style="flex: 1; font-weight: bold; color: ${item.color || '#fff'}">
+                                            ${item.qualityName || QUALITY_NAMES[item.quality] || '未知品质'} ${item.name || '未知装备'} - 评分: ${score}
+                                        </label>
+                                    </div>
+                                    <div style="font-size: 12px; color: #aaa; padding-left: 25px;">
+                                        ${statsLines.slice(0, 5).join(' | ')}${statsLines.length > 5 ? '...' : ''}
+                                    </div>
+                                </div>
+                            `}).join('')}
+                        </div>
+                        <button class="btn-action" onclick="confirmEquipSelection()">确认选择</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showGemSelectionModal(gems) {
+            currentGemItems = gems;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'gemSelectionModal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>选择要预览的宝石</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="gem-selection-list">
+                            ${gems.map((gem, index) => `
+                                <div class="gem-selection-item">
+                                    <input type="checkbox" id="gem-${index}" value="${index}">
+                                    <label for="gem-${index}">
+                                        <span class="gem-name">${gem.name || '未知宝石'}</span>
+                                        <span class="gem-quality quality-${QUALITY_NAMES[gem.quality]}">${QUALITY_NAMES[gem.quality] || '未知品质'}</span>
+                                        <span class="gem-effect">${gem.effect || '未知效果'}</span>
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn-action" onclick="confirmGemSelection()">确认选择</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function confirmEquipSelection() {
+            const items = currentEquipItems;
+            const type = currentEquipType;
+            
+            const checkboxes = document.querySelectorAll('.equip-selection-item input:checked');
+            const selectedIndices = Array.from(checkboxes).map(checkbox => parseInt(checkbox.value));
+            
+            if (selectedIndices.length === 0) {
+                showToast('请选择至少一件装备');
+                return;
+            }
+            
+            // 生成预览内容
+            let previewContent = '';
+            switch(type) {
+                case 'backpack':
+                    previewContent = '📦 背包装备预览：';
+                    break;
+                case 'worn':
+                    previewContent = '👕 身上装备预览：';
+                    break;
+            }
+            
+            selectedIndices.forEach(index => {
+                const item = items[index];
+                const simpleEquipData = {
+                    name: item.name,
+                    quality: item.quality,
+                    qualityName: item.qualityName,
+                    color: item.color,
+                    slot: item.slot,
+                    level: item.level,
+                    maxLevel: item.maxLevel,
+                    stats: item.stats,
+                    affixes: item.affixes
+                };
+                const equipData = JSON.stringify(simpleEquipData);
+                const equipDataEncoded = btoa(unescape(encodeURIComponent(equipData)));
+                
+                previewContent += ` [${item.qualityName || QUALITY_NAMES[item.quality]}]${item.name}{EQUIP:${equipDataEncoded}} `;
+            });
+            
+            // 将预览内容添加到聊天输入框
+            const chatInput = document.getElementById('chatInput');
+            chatInput.value = previewContent.trim();
+            
+            // 关闭模态框
+            document.querySelector('.modal').remove();
+        }
+
+        function confirmGemSelection() {
+            const gems = currentGemItems;
+            
+            const checkboxes = document.querySelectorAll('.gem-selection-item input:checked');
+            const selectedIndices = Array.from(checkboxes).map(checkbox => parseInt(checkbox.value));
+            
+            if (selectedIndices.length === 0) {
+                showToast('请选择至少一颗宝石');
+                return;
+            }
+            
+            // 生成预览内容
+            let previewContent = '💎 橙色宝石预览：';
+            selectedIndices.forEach(index => {
+                const gem = gems[index];
+                const gemData = JSON.stringify(gem);
+                const gemDataEncoded = btoa(unescape(encodeURIComponent(gemData)));
+                
+                previewContent += ` [${gem.qualityName || QUALITY_NAMES[gem.quality]}]${gem.name}{GEM:${gemDataEncoded}} `;
+            });
+            
+            // 将预览内容添加到聊天输入框
+            const chatInput = document.getElementById('chatInput');
+            chatInput.value = previewContent.trim();
+            
+            // 关闭模态框
+            document.querySelector('.modal').remove();
+        }
+
+
+
+        // 页面加载完成后加载 JavaScript
+        window.addEventListener('DOMContentLoaded', function() {
+            // 使用时间戳强制刷新缓存
+            const gameScript = document.createElement('script');
+            gameScript.src = 'game.js?t=' + Date.now();
+            gameScript.onload = function() {
+                console.log('[Script Load] game.js 加载完成');
+
+                // JavaScript 加载完成后初始化游戏
+                if (typeof initGame === 'function') {
+                    console.log('[Script Loaded] JavaScript 加载完成，开始初始化游戏');
+                    initGame();
+                }
+
+
+                console.log('[Event Binding] 绑定模态框遮罩点击关闭事件');
+                const modals = document.querySelectorAll('.modal');
+                console.log('[Event Binding] 找到模态框数量:', modals.length);
+                modals.forEach(function(modal) {
+                    console.log('[Event Binding] 绑定模态框遮罩事件:', modal.id);
+                    modal.addEventListener('click', function(e) {
+                        // 检查点击目标是否是modal本身（遮罩区域），而不是modal-content内部
+                        if (e.target === modal || e.target.classList.contains('modal')) {
+                            console.log('[Modal Click] 遮罩被点击，关闭模态框:', modal.id);
+                            if (typeof closeModal === 'function') {
+                                closeModal(modal.id);
+                            } else {
+                                modal.classList.remove('show');
+                                modal.classList.remove('active');
+                            }
+                        }
+                    });
+                });
+
+                console.log('[Event Binding] 模态框遮罩事件绑定完成');
+                console.log('[Event Binding] closeModal 函数是否存在:', typeof closeModal);
+            };
+            document.body.appendChild(gameScript);
+        });
+        
+        window.showChatEquipDetail = showChatEquipDetail;
+        window.showChatGemDetail = showChatGemDetail;
+        window.showItemDetailFromData = showItemDetailFromData;
+        window.showGemDetailFromData = showGemDetailFromData;
+    </script>
+<!--客服 开始-->
+<script src="//g8hh.github.io/static/js/jquery.min.js"></script>
+<link rel="stylesheet" href="//g8hh.github.io/static/css/kf.css" type="text/css" media="screen" charset="utf-8">
+<script src="//g8hh.github.io/static/js/kf.js"></script>
+<!-- 客服 结束 -->
+<!--站长统计-->
+    <div style="display: none">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6581389daf4dd6fe7dbb4d20fdcb52a6";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+    </div>
+</body>
+</html>
