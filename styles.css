@@ -2003,6 +2003,213 @@ div#inventoryPage div.inventory-grid div.inventory-item,
     overflow-y: auto;
 }
 
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+    /* 顶部状态栏 */
+    .top-bar {
+        padding: 4px 8px;
+    }
+    
+    .status-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .char-info {
+        gap: 8px;
+    }
+    
+    .char-name {
+        font-size: 14px;
+    }
+    
+    .char-level {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+    
+    .char-exp {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .resources {
+        gap: 10px;
+    }
+    
+    .resource-value {
+        font-size: 12px;
+    }
+    
+    /* 主内容区域 */
+    .main-content {
+        margin-top: 70px; /* 增加顶部间距，适应移动端状态栏 */
+        margin-bottom: 60px;
+        padding: 8px;
+        height: calc(100vh - 130px);
+    }
+    
+    /* 底部导航栏 */
+    .bottom-nav {
+        padding: 4px 8px;
+    }
+    
+    .nav-btn {
+        padding: 6px 10px;
+        min-width: 50px;
+    }
+    
+    .nav-icon {
+        font-size: 18px;
+    }
+    
+    .nav-text {
+        font-size: 10px;
+    }
+    
+    /* 模态框 */
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: 95vw;
+    }
+    
+    /* 兑换码弹窗 */
+    #redeemCodeModal .modal-content {
+        height: 95vh;
+        max-height: 95vh;
+        width: 95%;
+        max-width: 95vw;
+    }
+    
+    /* 装备详情 */
+    .equipment-card {
+        padding: 10px;
+    }
+    
+    .equipment-stats {
+        font-size: 12px;
+    }
+    
+    /* 背包页面 */
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    /* 背包过滤器标签 */
+    .filter-tabs {
+        gap: 3px;
+    }
+    
+    .filter-btn {
+        padding: 2px 5px;
+        font-size: 9px;
+    }
+    
+    /* 技能页面 */
+    .skill-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .skill-tabs {
+        gap: 3px;
+        margin-bottom: 10px;
+    }
+    
+    .skill-tab {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    .skill-slots {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .skill-slot {
+        padding: 10px;
+    }
+    
+    .skill-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    
+    /* 商店页面 */
+    .shop-tabs {
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-bottom: 10px;
+    }
+    
+    .shop-tab {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex: 1 1 calc(50% - 3px);
+    }
+    
+    /* 角色页面 */
+    .char-tabs {
+        gap: 3px;
+        margin-bottom: 10px;
+    }
+    
+    .char-tab {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    /* 更多页面 */
+    .menu-item {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+    
+    .menu-icon {
+        font-size: 20px;
+    }
+    
+    .menu-text {
+        font-size: 13px;
+    }
+    
+    /* 分解栏适配 */
+    .auto-dismantle-bar {
+        padding: 8px 10px;
+        margin-top: 10px;
+    }
+    
+    .auto-dismantle-title {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .dismantle-quality-list {
+        gap: 4px 6px;
+    }
+    
+    .dismantle-quality-item {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+    
+    .dismantle-quality-item input[type="checkbox"] {
+        width: 12px;
+        height: 12px;
+    }
+} 
+
+/* 确保分解栏只在对应页面显示 */
+.page:not(.active) .auto-dismantle-bar {
+    display: none !important;
+}
+
 /* 兑换码内容样式调整 */
 #redeemModalBody {
     padding: 10px;

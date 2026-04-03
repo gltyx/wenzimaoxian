@@ -388,7 +388,7 @@ const AFFIXES = {
     penetrate: { name: '穿透', icon: '???', type: 'percentage' },
     expBonus: { name: '经验', icon: '??', type: 'percentage' },
     goldBonus: { name: '金币', icon: '??', type: 'percentage' },
-    maxAtk: { name: '最大攻击力', icon: '??', type: 'number' }
+    maxAtk: { name: '最大攻击力', icon: '??', type: 'percentage' }
 };
 
 // 品质词缀配置表（紫色以下不附带词缀，攻速和经验已减半）
@@ -1267,7 +1267,6 @@ function spawnEnemy() {
     autoBattleInterval = setInterval(() => {
         // 备用机制：如果怪物意外消失，立即生成新怪物
         if (!GameState.battle.currentEnemy && GameState.battle.isAuto) {
-            console.log('备用机制：生成新敌人');
             spawnNextEnemy();
         }
         // 定期检查药水状态和更新Buff显示
@@ -1444,11 +1443,8 @@ function startBattle() {
 function playerAttack() {
     const enemy = GameState.battle.currentEnemy;
     if (!enemy || enemy.hp <= 0) {
-        console.log('playerAttack 被调用，但敌人不存在或已死亡');
         return;
     }
-
-    console.log('playerAttack 被调用，敌人:', enemy.name, '敌人HP:', enemy.hp);
 
     const dmg = calculateDamage(GameState.player, enemy);
     // 玩家暴击率 - 敌人抗暴击 = 实际暴击概率
@@ -1554,8 +1550,6 @@ function onEnemyDefeated() {
     const enemy = GameState.battle.currentEnemy;
     if (!enemy) return;
 
-    console.log('onEnemyDefeated 被调用，怪物:', enemy.name);
-
     // 经验和金币
     let exp, gold;
 
@@ -1626,7 +1620,6 @@ function onEnemyDefeated() {
     }
 
     // 立即生成新敌人
-    console.log('立即生成新敌人');
     spawnNextEnemy();
 
     // 检查升级
@@ -2070,10 +2063,9 @@ function recalculateEquipmentStats(item) {
     }
 
     // 词缀属性 - 百分比属性和数值属性分开处理
-    // 百分比属性：atkSpd, crit, critDmg, vamp, penetrate, antiCrit, antiCritDmg, expBonus, goldBonus
-    // 数值属性：maxAtk
+    // 百分比属性：atkSpd, crit, critDmg, vamp, penetrate, antiCrit, antiCritDmg, expBonus, goldBonus, maxAtk
     // 词缀属性不受强化影响
-    const percentageAffixes = ['atkSpd', 'crit', 'critDmg', 'vamp', 'penetrate', 'antiCrit', 'antiCritDmg', 'expBonus', 'goldBonus'];
+    const percentageAffixes = ['atkSpd', 'crit', 'critDmg', 'vamp', 'penetrate', 'antiCrit', 'antiCritDmg', 'expBonus', 'goldBonus', 'maxAtk'];
     for (const affix of item.affixes) {
         const key = affix.type;
         if (!item.stats[key]) item.stats[key] = 0;
@@ -4058,6 +4050,11 @@ function updateTopBar() {
           totalDropBonus += 50; // 爆率药水+50%
       }
 
+      // 应用最大攻击力百分比加成（maxAtk是百分比，如15代表+15%攻击力）
+      if (totalMaxAtk > 0) {
+          totalAtk = totalAtk * (1 + totalMaxAtk / 100);
+      }
+
       // 更新玩家对象实际属性（不仅仅是显示）
       player.atk = Math.round(totalAtk);
       player.def = Math.round(totalDef);
@@ -5106,7 +5103,7 @@ window.calculateEquipmentScore = calculateEquipmentScore;
         expBonus: {name: '经验加成', unit: '%'},
         goldBonus: {name: '金币加成', unit: '%'},
         dropBonus: {name: '爆率加成', unit: '%'},
-        maxAtk: {name: '最大攻击力', unit: ''}
+        maxAtk: {name: '最大攻击力', unit: '%'}
       };
 
       for (const [key, value] of Object.entries(item.stats)) {
@@ -5687,7 +5684,7 @@ function showEquippedItemDetail(slot) {
             expBonus: {name: '经验', unit: '%'},
             goldBonus: {name: '金币', unit: '%'},
             dropBonus: {name: '爆率', unit: '%'},
-            maxAtk: {name: '最大攻', unit: ''}
+            maxAtk: {name: '最大攻', unit: '%'}
         };
 
         html += '<div class="stats-grid-compact">';
@@ -8181,54 +8178,12 @@ function initGame() {
     bindEvents();
 
     // 启用自动保存
-    setInterval(saveGame, 60000); // 每分钟保存一次
+    setInterval(saveGame, 300000); // 每5分钟保存一次
 
-    // 每1分钟自动更新排行榜（仅在有玩家ID时）
-    setInterval(() => {
-        const userId = GameState.player.playerId;
-        if (userId && window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.updateLeaderboardScore) {
-            const score = calculateLeaderboardScore();
-            const level = GameState.player.level;
-            const equipmentScore = calculateTotalEquipmentScore();
-            const kills = GameState.stats.monstersKilled;
-            const playerName = GameState.player.name || '无名战士';
-            window.cloudbaseUtils.updateLeaderboardScore(userId, {
-                score: score,
-                level: level,
-                equipmentScore: equipmentScore,
-                kills: kills,
-                playerName: playerName
-            })
-                .catch(error => {
-                    console.error('排行榜自动更新失败:', error);
-                });
-        }
-    }, 60000);
+    // 移除自动更新排行榜，只在玩家查看排行榜时更新
+    console.log('排行榜自动更新已禁用，仅在查看时更新');
 
-    // 初始化后立即更新一次排行榜（仅在有玩家ID时）
-    setTimeout(() => {
-        const userId = GameState.player.playerId;
-        if (userId && window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.updateLeaderboardScore) {
-            const score = calculateLeaderboardScore();
-            const level = GameState.player.level;
-            const equipmentScore = calculateTotalEquipmentScore();
-            const kills = GameState.stats.monstersKilled;
-            const playerName = GameState.player.name || '无名战士';
-            window.cloudbaseUtils.updateLeaderboardScore(userId, {
-                score: score,
-                level: level,
-                equipmentScore: equipmentScore,
-                kills: kills,
-                playerName: playerName
-            })
-                .then(() => {
-                    console.log('排行榜初始更新成功');
-                })
-                .catch(error => {
-                    console.error('排行榜初始更新失败:', error);
-                });
-        }
-    }, 3000);
+    // 初始化后不再自动更新排行榜，只在玩家查看时更新
 
     console.log('游戏初始化完成，准备选择职业');
 }
@@ -8476,6 +8431,14 @@ function saveCloudGame() {
                     const equipmentScore = calculateTotalEquipmentScore();
                     const kills = GameState.stats.monstersKilled;
                     const playerName = GameState.player.name || '无名战士';
+                    console.log('保存云存档时更新排行榜:', {
+                        userId: userId,
+                        score: score,
+                        level: level,
+                        equipmentScore: equipmentScore,
+                        kills: kills,
+                        playerName: playerName
+                    });
                     window.cloudbaseUtils.updateLeaderboardScore(userId, {
                         score: score,
                         level: level || 0,
@@ -8483,9 +8446,14 @@ function saveCloudGame() {
                         kills: kills || 0,
                         playerName: playerName
                     })
+                        .then(() => {
+                            console.log('排行榜更新成功');
+                        })
                         .catch(error => {
                             console.error('排行榜更新失败:', error);
                         });
+                } else {
+                    console.log('排行榜更新方法不可用');
                 }
             })
             .catch(error => {
@@ -8586,7 +8554,33 @@ function showLeaderboard() {
         <div id="leaderboardList" style="text-align: center; padding: 20px; color: var(--text-secondary);">加载中...</div>
     `;
     
-    loadLeaderboardData();
+    // 先更新自己的排行榜数据，然后再加载排行榜
+    const userId = GameState.player.playerId;
+    if (userId && window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.updateLeaderboardScore) {
+        const score = calculateLeaderboardScore();
+        const level = GameState.player.level;
+        const equipmentScore = calculateTotalEquipmentScore();
+        const kills = GameState.stats.monstersKilled;
+        const playerName = GameState.player.name || '无名战士';
+        
+        window.cloudbaseUtils.updateLeaderboardScore(userId, {
+            score: score,
+            level: level,
+            equipmentScore: equipmentScore,
+            kills: kills,
+            playerName: playerName
+        })
+            .then(() => {
+                console.log('排行榜数据更新成功');
+                loadLeaderboardData();
+            })
+            .catch(error => {
+                console.error('排行榜数据更新失败:', error);
+                loadLeaderboardData();
+            });
+    } else {
+        loadLeaderboardData();
+    }
 }
 
 function switchLeaderboard(type) {
@@ -8637,110 +8631,152 @@ function refreshMyLeaderboardData() {
 }
 
 function loadLeaderboardData() {
-    const content = document.getElementById('leaderboardList');
+    const content = document.getElementById('leaderboardContent');
     if (!content) return;
     
     console.log('开始显示排行榜...');
     console.log('当前排行榜类型:', currentLeaderboardType);
     
+    // 清除旧的缓存，确保获取最新数据
+    localStorage.removeItem('cachedLeaderboard');
+    localStorage.removeItem('leaderboardLastUpdate');
+    console.log('已清除旧的排行榜缓存');
+    
+    // 直接从服务器获取最新数据，不使用缓存
+    
+    // 无缓存或缓存过期，从服务器获取
     if (window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.getLeaderboard) {
         console.log('开始调用 getLeaderboard...');
         window.cloudbaseUtils.getLeaderboard()
             .then(leaderboard => {
                 console.log('收到排行榜数据:', leaderboard);
-                content.innerHTML = '';
-                const currentUserId = GameState.player.playerId;
-                console.log('当前用户ID:', currentUserId);
-                
-                let sortedData = [];
-                
-                // 适配腾讯云CloudBase的数据格式
-                if (Array.isArray(leaderboard)) {
-                    console.log('排行榜数据是数组格式，长度:', leaderboard.length);
-                    
-                    sortedData = [...leaderboard].sort((a, b) => {
-                        if (currentLeaderboardType === 'level') {
-                            return (b.level || 0) - (a.level || 0);
-                        } else if (currentLeaderboardType === 'equipment') {
-                            return (b.equipmentScore || 0) - (a.equipmentScore || 0);
-                        } else {
-                            return (b.score || 0) - (a.score || 0);
-                        }
-                    });
-                    
-                    sortedData.forEach((item, index) => {
-                        console.log(`排行榜第${index + 1}名:`, item);
-                        const leaderboardItem = document.createElement('div');
-                        const isSelf = item._id === currentUserId;
-                        leaderboardItem.className = `leaderboard-item ${isSelf ? 'self' : ''}`;
-                        
-                        let rankClass = 'other';
-                        if (index === 0) rankClass = 'top1';
-                        else if (index === 1) rankClass = 'top2';
-                        else if (index === 2) rankClass = 'top3';
-                        
-                        const level = item.level || 0;
-                        const equipmentScore = item.equipmentScore || 0;
-                        const kills = item.kills || 0;
-                        
-                        let mainValue = item.score || 0;
-                        let mainLabel = '综合';
-                        if (currentLeaderboardType === 'level') {
-                            mainValue = level;
-                            mainLabel = '等级';
-                        } else if (currentLeaderboardType === 'equipment') {
-                            mainValue = equipmentScore;
-                            mainLabel = '装备';
-                        }
-                        
-                        leaderboardItem.innerHTML = `
-                            <span class="leaderboard-rank ${rankClass}">${index + 1}</span>
-                            <span class="leaderboard-username">${item.playerName || item._id}</span>
-                            <span class="leaderboard-score">${mainValue}</span>
-                            <span style="font-size: 12px; color: #aaa;">
-                                ${currentLeaderboardType !== 'level' ? `Lv.${level}` : ''}
-                                ${currentLeaderboardType !== 'equipment' ? ` | 装备:${equipmentScore}` : ''}
-                                 | 击杀:${kills}
-                            </span>
-                        `;
-                        content.appendChild(leaderboardItem);
-                    });
-                } else {
-                    // 兼容旧数据格式
-                    console.log('排行榜数据不是数组格式，尝试旧格式...');
-                    const sortedScores = Object.entries(leaderboard || {}).sort((a, b) => b[1] - a[1]);
-                    sortedScores.forEach(([userId, score], index) => {
-                        const leaderboardItem = document.createElement('div');
-                        const isSelf = userId === currentUserId;
-                        leaderboardItem.className = `leaderboard-item ${isSelf ? 'self' : ''}`;
-                        
-                        let rankClass = 'other';
-                        if (index === 0) rankClass = 'top1';
-                        else if (index === 1) rankClass = 'top2';
-                        else if (index === 2) rankClass = 'top3';
-                        
-                        leaderboardItem.innerHTML = `
-                            <span class="leaderboard-rank ${rankClass}">${index + 1}</span>
-                            <span class="leaderboard-username">${userId}</span>
-                            <span class="leaderboard-score">${score}</span>
-                        `;
-                        content.appendChild(leaderboardItem);
-                    });
-                }
-                
-                // 如果没有排行榜数据
-                if (content.children.length === 0) {
-                    content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">暂无排行数据，请稍后再试</div>';
-                }
+                // 更新缓存
+                localStorage.setItem('cachedLeaderboard', JSON.stringify(leaderboard));
+                localStorage.setItem('leaderboardLastUpdate', Date.now().toString());
+                renderLeaderboardData(leaderboard);
             })
             .catch(error => {
-                showToast('排行榜加载失败: ' + error.message);
-                console.error('排行榜加载错误:', error);
-                content.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--danger-color);">加载失败: ${error.message}<br>请重试</div>`;
+                console.error('加载排行榜失败:', error);
+                content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">加载排行榜失败</div>';
             });
     } else {
-        showToast('云功能未初始化，请检查网络连接或浏览器设置');
+        console.error('云功能未初始化，无法加载排行榜');
         content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">云功能未初始化</div>';
+    }
+    
+    // 渲染排行榜数据
+    function renderLeaderboardData(leaderboard) {
+        content.innerHTML = '';
+        const currentUserId = GameState.player.playerId;
+        console.log('当前用户ID:', currentUserId);
+        
+        let sortedData = [];
+        
+        // 适配腾讯云CloudBase的数据格式
+        if (Array.isArray(leaderboard)) {
+            console.log('排行榜数据是数组格式，长度:', leaderboard.length);
+            
+            sortedData = [...leaderboard].sort((a, b) => {
+                if (currentLeaderboardType === 'level') {
+                    return (b.level || 0) - (a.level || 0);
+                } else if (currentLeaderboardType === 'equipment') {
+                    return (b.equipmentScore || 0) - (a.equipmentScore || 0);
+                } else {
+                    return (b.score || 0) - (a.score || 0);
+                }
+            });
+            
+            sortedData.forEach((item, index) => {
+                console.log(`排行榜第${index + 1}名:`, item);
+                const leaderboardItem = document.createElement('div');
+                const isSelf = item._id === currentUserId;
+                leaderboardItem.className = `leaderboard-item ${isSelf ? 'self' : ''}`;
+                
+                let rankClass = 'other';
+                if (index === 0) rankClass = 'top1';
+                else if (index === 1) rankClass = 'top2';
+                else if (index === 2) rankClass = 'top3';
+                
+                const level = item.level || 0;
+                const equipmentScore = item.equipmentScore || 0;
+                const kills = item.kills || 0;
+                
+                let mainValue = item.score || 0;
+                let mainLabel = '综合';
+                if (currentLeaderboardType === 'level') {
+                    mainValue = level;
+                    mainLabel = '等级';
+                } else if (currentLeaderboardType === 'equipment') {
+                    mainValue = equipmentScore;
+                    mainLabel = '装备';
+                }
+                
+                // 生成特殊奖章
+                let rankBadge = '';
+                if (index === 0) rankBadge = '🏆';
+                else if (index === 1) rankBadge = '🥈';
+                else if (index === 2) rankBadge = '🥉';
+                
+                // 生成等级奖章
+                let levelBadge = '⭐';
+                
+                leaderboardItem.innerHTML = `
+                    <div class="leaderboard-item-header">
+                        <span class="leaderboard-rank ${rankClass}">${index + 1}</span>
+                        <span class="leaderboard-username ${rankClass}">${item.playerName || item._id}</span>
+                        <span class="level-info">Lv.${level}</span>
+                        ${rankBadge ? `<span class="rank-badge">${rankBadge}</span>` : ''}
+                    </div>
+                    <div class="leaderboard-item-stats">
+                        <span class="kills-info">击杀:${kills}</span>
+                        <span class="equipment-info">装备:${equipmentScore}</span>
+                    </div>
+                `;
+                content.appendChild(leaderboardItem);
+            });
+            
+            // 在控制台输出所有用户ID，方便封号
+            console.log('========== 排行榜用户ID列表（用于封号）==========');
+            sortedData.forEach((item, index) => {
+                console.log(`第${index + 1}名 - 名字: ${item.playerName || '未知'}, ID: ${item._id}`);
+            });
+            console.log('========== 用户ID列表结束 ==========');
+            console.log('所有用户ID数组:', sortedData.map(item => item._id));
+        } else {
+            // 兼容旧数据格式
+            console.log('排行榜数据不是数组格式，尝试旧格式...');
+            const sortedScores = Object.entries(leaderboard || {}).sort((a, b) => b[1] - a[1]);
+            sortedScores.forEach(([userId, score], index) => {
+                const leaderboardItem = document.createElement('div');
+                const isSelf = userId === currentUserId;
+                leaderboardItem.className = `leaderboard-item ${isSelf ? 'self' : ''}`;
+                
+                let rankClass = 'other';
+                if (index === 0) rankClass = 'top1';
+                else if (index === 1) rankClass = 'top2';
+                else if (index === 2) rankClass = 'top3';
+                
+                leaderboardItem.innerHTML = `
+                    <span class="leaderboard-rank ${rankClass}">${index + 1}</span>
+                    <span class="leaderboard-username">${userId}</span>
+                    <span class="leaderboard-score">${score}</span>
+                `;
+                content.appendChild(leaderboardItem);
+            });
+            
+            // 在控制台输出所有用户ID，方便封号
+            console.log('========== 排行榜用户ID列表（用于封号）==========');
+            sortedScores.forEach(([userId, score], index) => {
+                console.log(`第${index + 1}名 - ID: ${userId}`);
+            });
+            console.log('========== 用户ID列表结束 ==========');
+            console.log('所有用户ID数组:', sortedScores.map(([userId]) => userId));
+        }
+        
+        // 如果没有排行榜数据
+        if (content.children.length === 0) {
+            content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">暂无排行数据，请稍后再试</div>';
+        }
     }
 }
 
@@ -8751,56 +8787,84 @@ let chatAutoScrollEnabled = true;
 function showChat() {
     showModal('chatModal');
     const messagesContainer = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.querySelector('#chatModal .btn-send');
+    
     messagesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载中...</div>';
     
-    if (window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.listenForMessages) {
+    console.log('打开聊天窗口，检查云功能状态:', {
+        cloudbaseUtils: !!window.cloudbaseUtils,
+        initialized: window.cloudbaseUtils ? window.cloudbaseUtils.initialized : false,
+        getChatMessages: window.cloudbaseUtils ? !!window.cloudbaseUtils.getChatMessages : false,
+        sendMessage: window.cloudbaseUtils ? !!window.cloudbaseUtils.sendMessage : false,
+        listenForMessages: window.cloudbaseUtils ? !!window.cloudbaseUtils.listenForMessages : false
+    });
+    
+    // 清除之前的定时器
+    if (chatRefreshInterval) {
+        clearInterval(chatRefreshInterval);
+        chatRefreshInterval = null;
+    }
+    
+    if (window.cloudbaseUtils && window.cloudbaseUtils.initialized) {
         // 先清空消息
         messagesContainer.innerHTML = '';
         
+        // 启用输入和发送按钮
+        chatInput.disabled = false;
+        if (sendButton) sendButton.disabled = false;
+        
         // 加载历史消息
         if (window.cloudbaseUtils.getChatMessages) {
+            console.log('加载历史聊天消息');
             window.cloudbaseUtils.getChatMessages('global', 50)
                 .then(messages => {
-                    messages.forEach(message => {
+                    console.log('加载历史消息成功:', messages.length);
+                    // 反转消息顺序，使最早的消息显示在最上面，最新的消息显示在最下面
+                    messages.reverse().forEach(message => {
                         addChatMessage(message);
                     });
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 })
                 .catch(error => {
                     console.error('加载历史消息失败:', error);
+                    messagesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载历史消息失败</div>';
                 });
         }
         
         // 监听新消息
-        try {
-            window.cloudbaseUtils.listenForMessages('global', message => {
-                addChatMessage(message);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            });
-        } catch (e) {
-            console.error('监听消息失败:', e);
+        let chatWatcherCleanup = null;
+        if (window.cloudbaseUtils.listenForMessages) {
+            try {
+                console.log('开始监听新消息');
+                chatWatcherCleanup = window.cloudbaseUtils.listenForMessages('global', message => {
+                    console.log('收到新消息:', message);
+                    addChatMessage(message);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                });
+            } catch (e) {
+                console.error('监听消息失败:', e);
+                showToast('实时消息监听失败，将使用定期刷新');
+            }
         }
         
-        // 定期刷新聊天（每3秒）作为备份方案
-        if (chatRefreshInterval) {
-            clearInterval(chatRefreshInterval);
-        }
+        // 无论实时监听是否成功，都设置定期刷新作为备份
         chatRefreshInterval = setInterval(() => {
             if (document.getElementById('chatModal') && document.getElementById('chatModal').style.display !== 'none') {
-                if (window.cloudbaseUtils.getChatMessages) {
+                if (window.cloudbaseUtils && window.cloudbaseUtils.getChatMessages) {
+                    console.log('定期刷新聊天消息');
                     const oldScrollHeight = messagesContainer.scrollHeight;
                     window.cloudbaseUtils.getChatMessages('global', 50)
                         .then(messages => {
-                            const currentMessages = messagesContainer.querySelectorAll('.chat-message');
-                            const currentCount = currentMessages.length;
-                            
-                            if (messages.length > currentCount) {
-                                messages.slice(currentCount).forEach(message => {
-                                    addChatMessage(message);
-                                });
-                                if (messagesContainer.scrollTop >= oldScrollHeight - 100) {
-                                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                }
+                            console.log('获取到聊天消息:', messages.length);
+                            // 清空现有消息，重新添加所有消息
+                            messagesContainer.innerHTML = '';
+                            // 反转消息顺序，使最早的消息显示在最上面，最新的消息显示在最下面
+                            messages.reverse().forEach(message => {
+                                addChatMessage(message);
+                            });
+                            if (messagesContainer.scrollTop >= oldScrollHeight - 100) {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
                             }
                         })
                         .catch(error => {
@@ -8813,10 +8877,47 @@ function showChat() {
                     chatRefreshInterval = null;
                 }
             }
-        }, 3000);
+        }, 10000); // 从3秒改为10秒
+        
+        // 为聊天模态框添加关闭事件监听器，确保清理资源
+        const chatModal = document.getElementById('chatModal');
+        const originalCloseModal = window.closeModal;
+        window.closeModal = function(modalId) {
+            if (modalId === 'chatModal') {
+                // 清理聊天监听器
+                if (chatWatcherCleanup) {
+                    chatWatcherCleanup();
+                    chatWatcherCleanup = null;
+                }
+                // 清理定期刷新
+                if (chatRefreshInterval) {
+                    clearInterval(chatRefreshInterval);
+                    chatRefreshInterval = null;
+                }
+                console.log('聊天资源已清理');
+            }
+            // 调用原始的closeModal函数
+            originalCloseModal(modalId);
+        };
     } else {
+        // 云功能未初始化，禁用输入和发送按钮
+        chatInput.disabled = true;
+        if (sendButton) sendButton.disabled = true;
+        
         showToast('云功能未初始化，请检查网络连接或浏览器设置');
-        messagesContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">云功能未初始化</div>';
+        messagesContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
+                <h3>聊天功能暂时不可用</h3>
+                <p style="margin: 10px 0;">云功能未初始化，可能的原因：</p>
+                <ul style="text-align: left; max-width: 300px; margin: 0 auto;">
+                    <li>网络连接不稳定</li>
+                    <li>浏览器跟踪预防功能阻止了连接</li>
+                    <li>腾讯云服务暂时不可用</li>
+                </ul>
+                <p style="margin-top: 20px;">请检查网络连接后重试</p>
+            </div>
+        `;
     }
 }
 
@@ -8957,18 +9058,30 @@ function sendChatMessage() {
     const message = input.value.trim();
     if (message) {
         const userId = GameState.player.playerId || '匿名用户';
+        console.log('尝试发送消息:', {
+            message: message,
+            userId: userId,
+            cloudbaseUtils: !!window.cloudbaseUtils,
+            initialized: window.cloudbaseUtils ? window.cloudbaseUtils.initialized : false,
+            sendMessage: window.cloudbaseUtils ? !!window.cloudbaseUtils.sendMessage : false
+        });
         if (window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.sendMessage) {
             window.cloudbaseUtils.sendMessage('global', userId, message)
                 .then(() => {
+                    console.log('消息发送成功');
                     input.value = '';
+                    showToast('消息发送成功');
                 })
                 .catch(error => {
-                    showToast('消息发送失败: ' + error.message);
                     console.error('消息发送错误:', error);
+                    showToast('消息发送失败: ' + error.message);
                 });
         } else {
+            console.error('云功能未初始化，无法发送消息');
             showToast('云功能未初始化，请检查网络连接或浏览器设置');
         }
+    } else {
+        showToast('消息不能为空');
     }
 }
 
@@ -9004,10 +9117,15 @@ function generatePassword() {
     return password;
 }
 
-// 验证密码格式（8位字母数字混合）
+// 验证密码格式（任意字符，至少包含一个字母或数字，不超过15位）
 function validatePassword(password) {
-    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8}$/;
-    return regex.test(password);
+    // 检查长度不超过15位
+    if (password.length > 15) {
+        return false;
+    }
+    // 检查是否包含至少一个字母或数字
+    const hasLetterOrNumber = /[a-zA-Z0-9]/.test(password);
+    return hasLetterOrNumber;
 }
 
 // 一键开始新游戏
@@ -9128,10 +9246,21 @@ function enterGame() {
     // 生成第一个怪物
     spawnNextEnemy();
     
-    // 显示职业选择模态框
-    setTimeout(() => {
-        showClassModal();
-    }, 100);
+    // 只有在玩家没有职业时才显示职业选择模态框
+    if (!GameState.player.class) {
+        setTimeout(() => {
+            showClassModal();
+        }, 100);
+    } else {
+        // 标记初始职业选择已完成
+        GameState.isInitialClassSelection = false;
+        
+        // 切换到战斗页面
+        switchPage('battle');
+        
+        // 开始自动战斗
+        startAutoBattle();
+    }
 }
 
 // 检查本地是否有保存的登录信息（同一设备自动登录）
@@ -9180,6 +9309,10 @@ function checkLocalLogin() {
                 })
                 .catch(error => {
                     console.error('自动登录失败:', error);
+                    showToast('登录失败: ' + error.message);
+                    // 清除本地存储的登录信息，防止下次自动登录
+                    localStorage.removeItem('playerId');
+                    localStorage.removeItem('playerPassword');
                 });
         }
     } else {
@@ -9248,7 +9381,7 @@ function updatePlayerPassword() {
         return;
     }
     if (!validatePassword(newPassword)) {
-        showToast('密码必须是8位字母数字混合！');
+        showToast('密码必须包含至少一个字母或数字，且不超过15位！');
         return;
     }
     GameState.player.password = newPassword;
@@ -9299,20 +9432,6 @@ function autoSaveCloudGame() {
             .then(() => {
                 lastUploadTime = Date.now();
                 console.log('云存档自动保存成功');
-                if (window.cloudbaseUtils.updateLeaderboardScore) {
-                    const score = calculateLeaderboardScore();
-                    const level = GameState.player.level;
-                    const equipmentScore = calculateTotalEquipmentScore();
-                    const kills = GameState.stats.monstersKilled;
-                    const playerName = GameState.player.name || '无名战士';
-                    window.cloudbaseUtils.updateLeaderboardScore(userId, {
-                        score: score,
-                        level: level || 0,
-                        equipmentScore: equipmentScore || 0,
-                        kills: kills || 0,
-                        playerName: playerName
-                    }).catch(() => {});
-                }
             })
             .catch(error => {
                 console.error('云存档自动保存失败:', error);
@@ -9363,8 +9482,59 @@ function startAutoSave() {
     console.log('自动云存档已启动（每10秒）');
 }
 
-// 页面加载完成后启动自动保存
+// 启动排行榜整点更新
+function startLeaderboardUpdate() {
+    function updateLeaderboardAtHour() {
+        if (window.cloudbaseUtils && window.cloudbaseUtils.initialized && window.cloudbaseUtils.updateLeaderboardScore) {
+            const userId = GameState.player.playerId;
+            if (userId) {
+                const score = calculateLeaderboardScore();
+                const level = GameState.player.level;
+                const equipmentScore = calculateTotalEquipmentScore();
+                const kills = GameState.stats.monstersKilled;
+                const playerName = GameState.player.name || '无名战士';
+                window.cloudbaseUtils.updateLeaderboardScore(userId, {
+                    score: score,
+                    level: level || 0,
+                    equipmentScore: equipmentScore || 0,
+                    kills: kills || 0,
+                    playerName: playerName
+                }).then(() => {
+                    console.log('排行榜整点更新成功');
+                }).catch(() => {
+                    console.log('排行榜整点更新失败');
+                });
+            }
+        }
+    }
+    
+    function scheduleNextUpdate() {
+        const now = new Date();
+        const nextHour = new Date(now);
+        nextHour.setHours(nextHour.getHours() + 1);
+        nextHour.setMinutes(0, 0, 0);
+        const delay = nextHour.getTime() - now.getTime();
+        
+        setTimeout(() => {
+            updateLeaderboardAtHour();
+            scheduleNextUpdate();
+        }, delay);
+        
+        console.log(`排行榜将在 ${nextHour.toLocaleString()} 自动更新`);
+    }
+    
+    // 立即执行一次，然后定时执行
+    updateLeaderboardAtHour();
+    scheduleNextUpdate();
+}
+
+// 页面加载完成后启动自动保存和排行榜更新
 setTimeout(() => {
     setupGameActionListeners();
     startAutoSave();
+    startLeaderboardUpdate();
 }, 2000);
+
+// 暴露函数到全局作用域
+window.loginGame = loginGame;
+window.startNewGame = startNewGame;

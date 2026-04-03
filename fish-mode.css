@@ -783,6 +783,32 @@ body.fish-mode .bottom-nav {
     z-index: 100 !important;
 }
 
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+    body.fish-mode .main-content {
+        margin-top: 70px !important;
+        margin-bottom: 60px !important;
+        padding: 8px !important;
+        height: calc(100vh - 130px) !important;
+    }
+    
+    body.fish-mode .modal {
+        padding: 10px !important;
+    }
+    
+    body.fish-mode .modal-content {
+        width: 95% !important;
+        max-width: 95vw !important;
+    }
+    
+    body.fish-mode #redeemCodeModal .modal-content {
+        height: 95vh !important;
+        max-height: 95vh !important;
+        width: 95% !important;
+        max-width: 95vw !important;
+    }
+}
+
 /* 装备品质颜色 */
 body.fish-mode .quality-common {
     color: #999 !important;

@@ -137,17 +137,77 @@ function loadGameState(userId) {
                 reject(new Error('CloudBase 数据库未初始化'));
                 return;
             }
-            console.log('开始加载云存档，userId:', userId);
-            db.collection('game_states').doc(userId).get()
-            .then(res => {
-                console.log('云存档查询结果:', res);
-                let gameState = null;
+            
+            // 先检查用户是否被封号
+            console.log('检查用户是否被封号，userId:', userId);
+            db.collection('banned_users').where({ _id: userId }).get()
+            .then(banRes => {
+                console.log('封号查询结果:', banRes);
                 
-                // 尝试多种方式获取数据
-                if (res.data) {
-                    if (typeof res.data === 'function') {
-                        const data = res.data();
-                        console.log('通过 data() 方法获取:', data);
+                // 检查用户是否被封号
+                let isBanned = false;
+                let banReason = '';
+                
+                if (banRes.data) {
+                    if (Array.isArray(banRes.data) && banRes.data.length > 0) {
+                        const banData = banRes.data[0];
+                        isBanned = true;
+                        banReason = banData.reason || '违反游戏规则';
+                    } else if (typeof banRes.data === 'function') {
+                        const banData = banRes.data();
+                        if (Array.isArray(banData) && banData.length > 0) {
+                            isBanned = true;
+                            banReason = banData[0].reason || '违反游戏规则';
+                        }
+                    }
+                } else if (banRes.docs && banRes.docs.length > 0) {
+                    const banData = banRes.docs[0].data();
+                    isBanned = true;
+                    banReason = banData.reason || '违反游戏规则';
+                }
+                
+                if (isBanned) {
+                    console.log('用户已被封号:', userId);
+                    reject(new Error(`账号违规，您的账号已被封禁，原因: ${banReason}`));
+                    return;
+                }
+                
+                // 用户未被封号，继续加载游戏状态
+                console.log('用户未被封号，开始加载云存档，userId:', userId);
+                db.collection('game_states').doc(userId).get()
+                .then(res => {
+                    console.log('云存档查询结果:', res);
+                    let gameState = null;
+                    
+                    // 尝试多种方式获取数据
+                    if (res.data) {
+                        if (typeof res.data === 'function') {
+                            const data = res.data();
+                            console.log('通过 data() 方法获取:', data);
+                            if (data) {
+                                if (Array.isArray(data) && data.length > 0) {
+                                    gameState = data[0].gameState;
+                                } else if (data.gameState) {
+                                    gameState = data.gameState;
+                                }
+                            }
+                        } else {
+                            console.log('通过 data 属性获取:', res.data);
+                            if (Array.isArray(res.data) && res.data.length > 0) {
+                                gameState = res.data[0].gameState;
+                            } else if (res.data.gameState) {
+                                gameState = res.data.gameState;
+                            }
+                        }
+                    } else if (res.docs && res.docs.length > 0) {
+                        console.log('通过 docs 属性获取:', res.docs[0]);
+                        const data = res.docs[0].data();
+                        if (data && data.gameState) {
+                            gameState = data.gameState;
+                        }
+                    } else if (res.exists) {
+                        console.log('文档存在，尝试获取数据');
+                        const data = res.data ? (typeof res.data === 'function' ? res.data() : res.data) : null;
                         if (data) {
                             if (Array.isArray(data) && data.length > 0) {
                                 gameState = data[0].gameState;
@@ -155,38 +215,21 @@ function loadGameState(userId) {
                                 gameState = data.gameState;
                             }
                         }
-                    } else {
-                        console.log('通过 data 属性获取:', res.data);
-                        if (Array.isArray(res.data) && res.data.length > 0) {
-                            gameState = res.data[0].gameState;
-                        } else if (res.data.gameState) {
-                            gameState = res.data.gameState;
-                        }
                     }
-                } else if (res.docs && res.docs.length > 0) {
-                    console.log('通过 docs 属性获取:', res.docs[0]);
-                    const data = res.docs[0].data();
-                    if (data && data.gameState) {
-                        gameState = data.gameState;
-                    }
-                } else if (res.exists) {
-                    console.log('文档存在，尝试获取数据');
-                    const data = res.data ? (typeof res.data === 'function' ? res.data() : res.data) : null;
-                    if (data) {
-                        if (Array.isArray(data) && data.length > 0) {
-                            gameState = data[0].gameState;
-                        } else if (data.gameState) {
-                            gameState = data.gameState;
-                        }
-                    }
-                }
-                
-                console.log('最终获取的 gameState:', gameState);
-                resolve(gameState);
+                    
+                    console.log('最终获取的 gameState:', gameState);
+                    resolve(gameState);
+                })
+                .catch(error => {
+                    console.error('加载游戏状态失败:', error);
+                    reject(new Error('加载游戏状态失败: ' + error.message));
+                });
             })
             .catch(error => {
-                console.error('加载游戏状态失败:', error);
-                reject(new Error('加载游戏状态失败: ' + error.message));
+                console.error('检查封号状态失败:', error);
+                // 检查封号状态失败时，拒绝登录
+                reject(new Error('账号违规，您的账号已被封禁，原因: 违反游戏规则'));
+                return;
             });
         } catch (error) {
             console.error('加载游戏状态异常:', error);
@@ -210,7 +253,7 @@ function getLeaderboard() {
             console.log('开始获取排行榜数据...');
             db.collection('leaderboard')
                 .orderBy('score', 'desc')
-                .limit(10)
+                .limit(50)
                 .get()
             .then(res => {
                 console.log('排行榜查询结果:', res);
@@ -252,8 +295,46 @@ function getLeaderboard() {
                         };
                     }));
                 }
-                console.log('处理后的排行榜数据:', leaderboard);
-                resolve(leaderboard);
+                
+                // 过滤掉被封禁的用户
+                console.log('开始过滤被封禁的用户...');
+                const banChecks = leaderboard.map(item => {
+                    return db.collection('banned_users').where({ _id: item._id }).get()
+                        .then(banRes => {
+                            let isBanned = false;
+                            if (banRes.data) {
+                                if (Array.isArray(banRes.data) && banRes.data.length > 0) {
+                                    isBanned = true;
+                                } else if (typeof banRes.data === 'function') {
+                                    const banData = banRes.data();
+                                    if (Array.isArray(banData) && banData.length > 0) {
+                                        isBanned = true;
+                                    }
+                                }
+                            } else if (banRes.docs && banRes.docs.length > 0) {
+                                isBanned = true;
+                            }
+                            return { item, isBanned };
+                        })
+                        .catch(() => {
+                            // 查询失败时默认不封禁
+                            return { item, isBanned: false };
+                        });
+                });
+                
+                Promise.all(banChecks)
+                    .then(results => {
+                        const filteredLeaderboard = results
+                            .filter(result => !result.isBanned)
+                            .map(result => result.item);
+                        console.log('过滤后的排行榜数据:', filteredLeaderboard);
+                        resolve(filteredLeaderboard);
+                    })
+                    .catch(error => {
+                        console.error('过滤排行榜数据失败:', error);
+                        // 过滤失败时返回原始数据
+                        resolve(leaderboard);
+                    });
             })
             .catch(error => {
                 console.error('获取排行榜失败:', error);
@@ -327,33 +408,77 @@ function sendMessage(channel, userId, message) {
 }
 
 function listenForMessages(channel, callback) {
-    try {
-        if (!window.cloudbaseUtils || !window.cloudbaseUtils.initialized) {
-            console.error('云功能未初始化，无法监听消息');
-            return;
+    let watcher = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
+    
+    function setupWatcher() {
+        try {
+            if (!window.cloudbaseUtils || !window.cloudbaseUtils.initialized) {
+                console.error('云功能未初始化，无法监听消息');
+                return;
+            }
+            if (!db) {
+                console.error('CloudBase 数据库未初始化');
+                return;
+            }
+            
+            console.log('正在设置聊天消息监听器...');
+            watcher = db.collection('chat')
+                .where({ roomId: channel })
+                .orderBy('timestamp', 'asc')
+                .watch({
+                    onChange: snapshot => {
+                        console.log('收到聊天消息更新:', snapshot.docChanges.length, '条新消息');
+                        snapshot.docChanges.forEach(change => {
+                            if (change.type === 'add') {
+                                // 处理数据格式，确保获取到正确的数据
+                                let messageData = change.doc.data;
+                                if (typeof messageData === 'function') {
+                                    messageData = messageData();
+                                }
+                                console.log('处理后的消息数据:', messageData);
+                                callback(messageData);
+                            }
+                        });
+                        // 重置重连次数
+                        reconnectAttempts = 0;
+                    },
+                    onError: error => {
+                        console.error('监听消息失败:', error);
+                        handleReconnect();
+                    }
+                });
+        } catch (error) {
+            console.error('监听消息异常:', error);
+            handleReconnect();
         }
-        if (!db) {
-            console.error('CloudBase 数据库未初始化');
-            return;
-        }
-        db.collection('chat')
-            .where({ roomId: channel })
-            .orderBy('timestamp', 'asc')
-            .watch({
-                onChange: snapshot => {
-                    snapshot.docChanges.forEach(change => {
-                        if (change.type === 'add') {
-                            callback(change.doc.data());
-                        }
-                    });
-                },
-                onError: error => {
-                    console.error('监听消息失败:', error);
-                }
-            });
-    } catch (error) {
-        console.error('监听消息异常:', error);
     }
+    
+    function handleReconnect() {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`尝试重新连接聊天监听器... (${reconnectAttempts}/${maxReconnectAttempts})`);
+            setTimeout(setupWatcher, reconnectDelay * reconnectAttempts);
+        } else {
+            console.error('聊天监听器重连失败，已达到最大尝试次数');
+        }
+    }
+    
+    setupWatcher();
+    
+    // 返回清理函数
+    return () => {
+        if (watcher) {
+            try {
+                watcher.close();
+                console.log('聊天监听器已关闭');
+            } catch (error) {
+                console.error('关闭聊天监听器失败:', error);
+            }
+        }
+    };
 }
 
 function getChatMessages(channel, limit) {
@@ -369,7 +494,7 @@ function getChatMessages(channel, limit) {
             }
             db.collection('chat')
                 .where({ roomId: channel })
-                .orderBy('timestamp', 'asc')
+                .orderBy('timestamp', 'desc')
                 .limit(limit || 50)
                 .get()
             .then(res => {
