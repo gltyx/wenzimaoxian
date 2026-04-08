@@ -104,13 +104,13 @@ function saveGameState(userId, gameState) {
             }
             const score = calculatePlayerScore(gameState);
             
-            db.collection('game_states').doc(userId).set({
+            db.collection('game_states_game2').doc(userId).set({
                 gameState: gameState,
                 score: score,
                 lastUpdated: Date.now()
             })
             .then(() => {
-                return db.collection('leaderboard').doc(userId).set({ score: score });
+                return db.collection('leaderboard_game2').doc(userId).set({ score: score });
             })
             .then(() => {
                 resolve();
@@ -140,7 +140,7 @@ function loadGameState(userId) {
             
             // 先检查用户是否被封号
             console.log('检查用户是否被封号，userId:', userId);
-            db.collection('banned_users').where({ _id: userId }).get()
+            db.collection('banned_users_game2').where({ _id: userId }).get()
             .then(banRes => {
                 console.log('封号查询结果:', banRes);
                 
@@ -174,7 +174,7 @@ function loadGameState(userId) {
                 
                 // 用户未被封号，继续加载游戏状态
                 console.log('用户未被封号，开始加载云存档，userId:', userId);
-                db.collection('game_states').doc(userId).get()
+                db.collection('game_states_game2').doc(userId).get()
                 .then(res => {
                     console.log('云存档查询结果:', res);
                     let gameState = null;
@@ -251,17 +251,20 @@ function getLeaderboard() {
                 return;
             }
             console.log('开始获取排行榜数据...');
-            db.collection('leaderboard')
+            console.log('使用的集合名称: leaderboard_game2');
+            db.collection('leaderboard_game2')
                 .orderBy('score', 'desc')
                 .limit(50)
                 .get()
             .then(res => {
                 console.log('排行榜查询结果:', res);
+                console.log('返回的数据条数:', res.data ? res.data.length : (res.docs ? res.docs.length : 0));
                 // 适配 CloudBase SDK 返回格式
                 const leaderboard = [];
                 if (res.data) {
                     // 新格式：res.data 是属性
                     if (Array.isArray(res.data)) {
+                        console.log('使用新格式数据，长度:', res.data.length);
                         leaderboard.push(...res.data.map(item => ({
                             _id: item._id,
                             score: item.score,
@@ -272,7 +275,9 @@ function getLeaderboard() {
                         })));
                     } else if (typeof res.data === 'function') {
                         // 旧格式：res.data() 是方法
-                        leaderboard.push(...res.data().map(item => ({
+                        const data = res.data();
+                        console.log('使用旧格式数据，长度:', data.length);
+                        leaderboard.push(...data.map(item => ({
                             _id: item._id,
                             score: item.score,
                             level: item.level,
@@ -283,6 +288,7 @@ function getLeaderboard() {
                     }
                 } else if (res.docs) {
                     // 另一种格式：res.docs 包含文档列表
+                    console.log('使用 docs 格式数据，长度:', res.docs.length);
                     leaderboard.push(...res.docs.map(doc => {
                         const data = doc.data();
                         return {
@@ -296,10 +302,13 @@ function getLeaderboard() {
                     }));
                 }
                 
+                console.log('解析后的排行榜数据长度:', leaderboard.length);
+                console.log('前5条数据:', leaderboard.slice(0, 5));
+                
                 // 过滤掉被封禁的用户
                 console.log('开始过滤被封禁的用户...');
                 const banChecks = leaderboard.map(item => {
-                    return db.collection('banned_users').where({ _id: item._id }).get()
+                    return db.collection('banned_users_game2').where({ _id: item._id }).get()
                         .then(banRes => {
                             let isBanned = false;
                             if (banRes.data) {
@@ -328,6 +337,7 @@ function getLeaderboard() {
                             .filter(result => !result.isBanned)
                             .map(result => result.item);
                         console.log('过滤后的排行榜数据:', filteredLeaderboard);
+                        console.log('过滤后的排行榜数据长度:', filteredLeaderboard.length);
                         resolve(filteredLeaderboard);
                     })
                     .catch(error => {
@@ -359,7 +369,7 @@ function updateLeaderboardScore(userId, data) {
                 return;
             }
             console.log('开始更新排行榜数据:', { userId, data });
-            db.collection('leaderboard').doc(userId).set(data)
+            db.collection('leaderboard_game2').doc(userId).set(data)
                 .then(res => {
                     console.log('排行榜数据更新成功:', res);
                     resolve();
@@ -387,7 +397,7 @@ function sendMessage(channel, userId, message) {
                 reject(new Error('CloudBase 数据库未初始化'));
                 return;
             }
-            db.collection('chat').add({
+            db.collection('chat_game2').add({
                 roomId: channel,
                 userId: userId,
                 message: message,
@@ -425,7 +435,7 @@ function listenForMessages(channel, callback) {
             }
             
             console.log('正在设置聊天消息监听器...');
-            watcher = db.collection('chat')
+            watcher = db.collection('chat_game2')
                 .where({ roomId: channel })
                 .orderBy('timestamp', 'asc')
                 .watch({
@@ -492,7 +502,7 @@ function getChatMessages(channel, limit) {
                 reject(new Error('CloudBase 数据库未初始化'));
                 return;
             }
-            db.collection('chat')
+            db.collection('chat_game2')
                 .where({ roomId: channel })
                 .orderBy('timestamp', 'desc')
                 .limit(limit || 50)

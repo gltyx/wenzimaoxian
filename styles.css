@@ -2008,46 +2008,100 @@ div#inventoryPage div.inventory-grid div.inventory-item,
     /* 顶部状态栏 */
     .top-bar {
         padding: 4px 8px;
+        min-height: 70px; /* 确保足够的高度 */
     }
     
     .status-container {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
+        width: 100%;
     }
     
     .char-info {
         gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
     }
     
     .char-name {
         font-size: 14px;
+        flex-shrink: 0;
     }
     
     .char-level {
         font-size: 11px;
         padding: 2px 8px;
+        flex-shrink: 0;
     }
     
     .char-exp {
         font-size: 10px;
         padding: 2px 6px;
+        flex-shrink: 0;
     }
     
     .resources {
-        gap: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    
+    .resource-item {
+        flex-shrink: 0;
+    }
+    
+    .resource-icon {
+        font-size: 16px;
     }
     
     .resource-value {
         font-size: 12px;
     }
     
+    .btn-fish-mode {
+        font-size: 11px !important;
+        padding: 3px 8px !important;
+    }
+    
     /* 主内容区域 */
     .main-content {
-        margin-top: 70px; /* 增加顶部间距，适应移动端状态栏 */
+        margin-top: 80px; /* 增加顶部间距，适应移动端状态栏 */
         margin-bottom: 60px;
         padding: 8px;
-        height: calc(100vh - 130px);
+        height: calc(100vh - 140px);
+    }
+    
+    /* 背包页面 */
+    #inventoryPage {
+        height: calc(100vh - 140px);
+    }
+    
+    #inventoryPage.active {
+        height: calc(100vh - 140px);
+    }
+    
+    /* 技能页面 */
+    #skillPage {
+        height: calc(100vh - 140px);
+    }
+    
+    #skillPage.active {
+        height: calc(100vh - 140px);
+    }
+    
+    /* 战斗页面 */
+    #battlePage.active {
+        height: calc(100vh - 140px);
+    }
+    
+    /* 黑市页面 */
+    #shopPage {
+        height: calc(100vh - 140px);
+    }
+    
+    #shopPage.active {
+        height: calc(100vh - 140px);
     }
     
     /* 底部导航栏 */
@@ -2056,16 +2110,16 @@ div#inventoryPage div.inventory-grid div.inventory-item,
     }
     
     .nav-btn {
-        padding: 6px 10px;
-        min-width: 50px;
+        padding: 6px 8px;
+        min-width: 45px;
     }
     
     .nav-icon {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .nav-text {
-        font-size: 10px;
+        font-size: 9px;
     }
     
     /* 模态框 */
@@ -2074,8 +2128,175 @@ div#inventoryPage div.inventory-grid div.inventory-item,
     }
     
     .modal-content {
-        width: 95%;
-        max-width: 95vw;
+        width: 98%;
+        max-width: 98vw;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* 装备/技能卡片 */
+    .inventory-item {
+        min-height: 120px !important;
+    }
+    
+    .equip-card-header {
+        min-height: 40px;
+    }
+    
+    .equip-name {
+        font-size: 12px;
+    }
+    
+    .equip-meta {
+        font-size: 10px;
+    }
+    
+    .equip-score {
+        font-size: 12px;
+    }
+    
+    .stat-chip {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+    
+    /* 按钮 */
+    .btn-select-area,
+    .btn-elite-dungeon,
+    .btn-hell-dungeon {
+        min-width: 80px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+    
+    /* 战斗日志 */
+    .battle-log {
+        min-height: 150px;
+    }
+    
+    .log-entry {
+        font-size: 12px;
+        padding: 4px 0;
+    }
+    
+    /* 区域选择 */
+    .area-name {
+        font-size: 16px;
+    }
+    
+    .area-level {
+        font-size: 12px;
+    }
+    
+    /* 物品详情 */
+    .item-detail-name {
+        font-size: 20px;
+    }
+    
+    .item-detail-meta {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* 技能槽 */
+    .skill-slots {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .skill-slot {
+        padding: 10px;
+    }
+    
+    .skill-icon {
+        font-size: 24px;
+    }
+    
+    .skill-name {
+        font-size: 11px;
+    }
+    
+    /* 背包过滤器 */
+    .filter-btn {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    
+    /* 商店物品 */
+    .shop-item {
+        padding: 15px;
+    }
+    
+    .item-info h3 {
+        font-size: 14px;
+    }
+    
+    .item-info p {
+        font-size: 12px;
+    }
+    
+    .btn-buy {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+    
+    /* 更多页面 */
+    .menu-item {
+        padding: 12px 16px;
+    }
+    
+    .menu-icon {
+        font-size: 20px;
+    }
+    
+    .menu-text {
+        font-size: 13px;
+    }
+    
+    /* 技能/宝石标签页 */
+    .skill-tab,
+    .shop-tab {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    /* 人物属性 */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .stat-item {
+        padding: 8px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+    
+    .stat-value {
+        font-size: 13px;
+    }
+    
+    /* 装备槽 */
+    .equipment-slots {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .equip-slot {
+        padding: 12px;
+    }
+    
+    .slot-icon {
+        font-size: 28px;
+    }
+    
+    .slot-name {
+        font-size: 11px;
+    }
+    
+    .equip-info {
+        font-size: 10px;
     }
     
     /* 兑换码弹窗 */
